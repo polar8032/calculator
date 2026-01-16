@@ -104,7 +104,7 @@
     .alert-btn.bold { font-weight: 700; }
     .alert-btn:active { background: rgba(128,128,128,0.1); }
 
-    /* --- SHEETS --- */
+    /* --- SHEETS (CORRIGIDO PARA ALTURA FIXA E GRANDE) --- */
     .overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
         opacity: 0; pointer-events: none; transition: opacity 0.3s; height: 100dvh; 
@@ -113,20 +113,39 @@
     
     .sheet {
         position: absolute; bottom: 0; left: 0; right: 0;
-        background: var(--sheet-bg); border-radius: 30px 30px 0 0;
-        transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-        display: flex; flex-direction: column; max-height: 95dvh; /* Aumentado ligeiramente */
+        background: var(--sheet-bg); 
+        border-radius: 30px 30px 0 0;
+        transform: translateY(100%); 
+        transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        display: flex; flex-direction: column; 
+        
+        /* AQUI ESTÁ A CORREÇÃO: ALTURA FIXA DE 92% DO ECRÃ */
+        height: 92dvh; 
+        
         padding-bottom: env(safe-area-inset-bottom);
         backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
         border-top: 1px solid rgba(255,255,255,0.1);
     }
     .overlay.active .sheet { transform: translateY(0); }
     
-    .handle-area { width: 100%; padding: 15px 0; display: flex; justify-content: center; flex-shrink: 0; }
+    .handle-area { width: 100%; padding: 15px 0; display: flex; justify-content: center; flex-shrink: 0; cursor: grab; }
     .handle-bar { width: 40px; height: 5px; background: var(--border); border-radius: 10px; opacity: 0.8; }
 
-    /* --- CALCULADORA e CONVERSOR --- */
-    .calc-container { padding: 0 20px 20px 20px; display: flex; flex-direction: column; align-items: center; flex: 1; overflow-y: auto; }
+    /* --- CONTENTORES (PREENCHEM O RESTO DA SHEET) --- */
+    .calc-container, .list-container { 
+        padding: 0 20px 20px 20px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        flex: 1;           /* Ocupa todo o espaço disponível na sheet */
+        overflow-y: auto;  /* Permite scroll se o conteúdo for maior que o espaço */
+        width: 100%; 
+    }
+    
+    /* Nota: .list-container já não precisa de height específica porque a .sheet já é grande */
+    .list-container { display: block; } /* Para a lista, display block funciona bem para os cards */
+
+    /* --- CALCULADORA --- */
     .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; flex-shrink: 0; }
     #calcResult { width: 100%; text-align: right; font-size: 3.5rem; border: none; background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0; }
     .history-dropdown { width: 100%; background: rgba(128,128,128,0.1); border-radius: 15px; max-height: 0; overflow-y: auto; transition: max-height 0.3s ease; margin-bottom: 10px; overscroll-behavior: contain; flex-shrink: 0; }
@@ -140,20 +159,13 @@
     .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; flex-shrink: 0; }
     .sci-row.show { display: grid; }
     .sci-btn { height: 40px; border-radius: 10px; border: none; background: var(--btn-grey); color: var(--text); font-size: 0.8rem; font-weight: 600; }
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 380px; margin-bottom: 10px; flex-shrink: 0; }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 380px; margin-bottom: 10px; flex-shrink: 0; margin-top: auto; /* Empurra o teclado para baixo */ }
     .key-btn { aspect-ratio: 1/1; width: 100%; max-width: 75px; border-radius: 50%; border: none; font-size: 1.7rem; background: var(--btn-grey); color: var(--btn-text); display: flex; align-items: center; justify-content: center; margin: 0 auto; }
     .key-btn:active { filter: brightness(0.85); }
     .key-btn.orange { background: var(--orange); color: #fff; }
     .key-btn.wide { grid-column: span 2; width: 100%; max-width: none; aspect-ratio: auto; height: 75px; border-radius: 40px; justify-content: flex-start; padding-left: 30px; }
 
-    /* --- NOTAS (FORÇADO PARA OCUPAR ALTURA) --- */
-    .list-container { 
-        padding: 0 20px 20px 20px; 
-        overflow-y: auto; 
-        flex: 1; 
-        width: 100%; 
-        height: 85dvh; /* Força 85% do ecrã sempre */
-    }
+    /* --- NOTAS CARD --- */
     .note-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
     .note-card-text { flex: 1; overflow: hidden; }
     .btn-trash { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; width: 35px; height: 35px; border-radius: 50%; margin-left: 10px; }
@@ -466,6 +478,7 @@
 </script>
 </body>
 </html>
+
 
 
 
