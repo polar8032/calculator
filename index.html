@@ -24,7 +24,6 @@
     body {
         margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
         background: var(--bg); color: var(--text); 
-        /* Altura dinâmica para ignorar barras do browser */
         height: 100dvh; 
         overflow: hidden;
         display: flex; flex-direction: column;
@@ -45,7 +44,6 @@
     /* --- DOCK --- */
     .dock-bar {
         position: fixed; 
-        /* Ajuste para respeitar a safe area em baixo (barra preta/branca do iPhone) */
         bottom: calc(30px + env(safe-area-inset-bottom)); 
         left: 20px; right: 20px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
@@ -74,14 +72,10 @@
         position: absolute; bottom: 0; left: 0; right: 0;
         background: var(--sheet-bg); border-radius: 30px 30px 0 0;
         transform: translateY(100%); 
-        /* A transição é gerida pelo CSS, mas o JS pode desligá-la durante o arrasto */
         transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
         display: flex; flex-direction: column; 
-        
-        /* Limites e Safe Area */
         max-height: 90dvh; 
         padding-bottom: env(safe-area-inset-bottom);
-        
         backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
         border-top: 1px solid rgba(255,255,255,0.1);
     }
@@ -94,7 +88,7 @@
     .calc-container { 
         padding: 0 20px 20px 20px; 
         display: flex; flex-direction: column; align-items: center; 
-        flex: 1; overflow-y: auto; /* Permite scroll se o ecrã for pequeno */
+        flex: 1; overflow-y: auto; 
     }
     
     .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; flex-shrink: 0; }
@@ -298,16 +292,20 @@
     let savedNotes = JSON.parse(localStorage.getItem('appNotes') || '[]');
     let calcHistory = [];
 
-    // --- CÁLCULO NA NOTA ---
+    // --- CÁLCULO INTELIGENTE (ESTILO iOS) ---
     noteBody.addEventListener('input', (e) => {
-        if (e.data === '=' || e.target.value.endsWith('=')) {
+        // CORREÇÃO: Só calcula se o input for EXPLICITAMENTE um sinal de igual.
+        // Isto impede que o cálculo corra ao fazer backspace/apagar.
+        if (e.data === '=') {
             const val = e.target.value;
+            // Procura a conta antes do sinal de igual
             const match = val.match(/(?:^|[\n\s])([0-9.,+\-*/()]+)=$/);
             if (match) {
                 const expression = match[1].replace(/,/g, '.');
                 try {
                     let result = eval(expression);
                     if(!Number.isInteger(result)) result = parseFloat(result.toFixed(2));
+                    // Adiciona o resultado
                     noteBody.value = val + result;
                 } catch (err) {}
             }
@@ -422,20 +420,14 @@
         }
     };
 
-    // --- SISTEMA DE MODAL & SWIPE (CORREÇÃO DE BUGS) ---
+    // --- SISTEMA DE MODAL ---
     
     function openModal(id) { 
         const overlay = document.getElementById(id);
         const sheet = overlay.querySelector('.sheet');
-        
-        // 1. HARD RESET: Remove qualquer estilo inline (como translateY do swipe anterior)
         sheet.style.cssText = ''; 
-        
-        // 2. FORÇA REFLOW: Obriga o browser a pintar a sheet "limpa" antes de animar
         void sheet.offsetWidth; 
-
         overlay.classList.add('active'); 
-        
         if(id==='modalList') renderNotes(); 
         if(id==='modalConverter') initConverter(); 
     }
@@ -443,13 +435,8 @@
     function closeModal(id) { 
         const overlay = document.getElementById(id);
         const sheet = overlay.querySelector('.sheet');
-        
         overlay.classList.remove('active');
-        
-        // Garante que limpamos estilos após a animação de fecho
-        setTimeout(() => {
-            sheet.style.cssText = '';
-        }, 350);
+        setTimeout(() => { sheet.style.cssText = ''; }, 350);
     }
     
     document.getElementById('btnOpenCalc').onclick = () => openModal('modalCalc');
@@ -457,9 +444,7 @@
     document.getElementById('btnConverter').onclick = () => openModal('modalConverter');
 
     document.querySelectorAll('.overlay').forEach(overlay => {
-        overlay.addEventListener('click', e => { 
-            if(e.target === overlay) closeModal(overlay.id); 
-        });
+        overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(overlay.id); });
         
         const sheet = overlay.querySelector('.sheet');
         let startY = 0;
@@ -467,12 +452,8 @@
 
         sheet.addEventListener('touchstart', (e) => {
             const isScrollable = e.target.closest('.history-dropdown, .list-container, .calc-container');
-            // Só deixa arrastar a sheet se o scroll interno estiver no topo
             if (isScrollable && isScrollable.scrollTop > 0) return;
-            
             startY = e.touches[0].clientY;
-            
-            // Remove a animação CSS para o arrasto ser instantâneo
             sheet.style.transition = 'none';
         }, {passive: true});
 
@@ -480,8 +461,6 @@
             if(startY === 0) return;
             currentY = e.touches[0].clientY;
             const diff = currentY - startY;
-            
-            // Só mexe se for para baixo
             if(diff > 0) { 
                 if(e.cancelable) e.preventDefault(); 
                 sheet.style.transform = `translateY(${diff}px)`; 
@@ -491,16 +470,11 @@
         sheet.addEventListener('touchend', (e) => {
             if(startY === 0) return;
             const diff = currentY - startY;
-
-            // Restaura a transição suave
             sheet.style.transition = ''; 
-
             if(diff > 120) {
-                // Fechar: Limpa o transform manual e deixa o CSS fechar
                 sheet.style.transform = ''; 
                 overlay.classList.remove('active');
             } else {
-                // Voltar: Limpa o transform para voltar a 0
                 sheet.style.transform = '';
             }
             startY = 0;
