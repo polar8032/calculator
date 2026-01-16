@@ -1,272 +1,203 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Pro Notes — Calculadora</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Notes iOS</title>
+
 <style>
 :root{
-  --bg-main:#f2f2f7; --bg-section:#ffffff; --text:#1c1c1e; --muted:#8e8e93;
-  --accent:#007aff; --orange:#ff9500; --danger:#ff3b30; --success:#34c759;
-  --neutral:#8e8e93; --grey:#f2f2f7; --border:#d1d1d6; --shadow:0 8px 30px rgba(0,0,0,.2);
+--bg:#f2f2f7;--sheet:#fff;--text:#111;
+--accent:#007aff;--orange:#ff9500;
+--border:#d1d1d6;--grey:#e5e5ea;
+--blur:blur(12px);
 }
 [data-theme="dark"]{
-  --bg-main:#121212; --bg-section:#272729; --text:#ededed; --muted:#98989d;
-  --grey:#38383a; --border:#424244; --orange:#ff9f0a;
+--bg:#000;--sheet:#1c1c1e;--text:#fff;
+--grey:#2c2c2e;--border:#3a3a3c;
 }
-*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial;}
-body{margin:0;background:var(--bg-main);color:var(--text);height:100vh;overflow:hidden;}
-.section-notes{height:100vh;padding:16px;display:flex;flex-direction:column;background:var(--bg-section);}
-#note-title{border:none;font-size:1.3rem;font-weight:700;background:none;color:var(--text);outline:none;}
-textarea{flex:1;border:none;outline:none;resize:none;font-size:1.05rem;margin-top:12px;background:none;color:var(--text);padding-bottom:100px;}
-.floating-actions{position:fixed;bottom:0;left:0;right:0;background:var(--bg-section);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 6px;z-index:10;}
-.btn-mini{width:48px;height:48px;border-radius:50%;border:none;font-size:1.2rem;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;}
-.calc-modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end;z-index:100;}
-.calc-sheet{position:relative;background:var(--bg-section);width:100%;border-radius:20px 20px 0 0;padding:12px 16px 20px;box-shadow:var(--shadow);}
-#calc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.calc-title{font-weight:700;}
-.close-calc{background:transparent;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);}
-#calc-display{width:100%;height:60px;font-size:2rem;text-align:right;border:none;background:none;color:var(--text);margin-bottom:8px;padding-right:6px;}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.grid button{height:56px;border-radius:50%;border:none;background:var(--grey);font-size:1.05rem;cursor:pointer;touch-action:manipulation;}
-.btn-op{color:var(--accent)}
-.btn-orange{background:var(--orange);color:white}
-.btn-blue{grid-column:span 2;border-radius:28px;background:var(--accent);color:white}
-.mode-toggle{margin-left:8px;padding:6px 10px;border-radius:12px;border:none;background:transparent;cursor:pointer;font-weight:600;color:var(--accent)}
-.send-btn{margin-top:12px;width:100%;padding:12px;border:none;border-radius:12px;background:var(--accent);color:white;font-weight:600;font-size:1rem;}
-@media(min-width:769px){ /* não esconder via !important - apenas reduzir o tamanho da sheet se desejado */
-  .calc-sheet{max-width:480px;margin:0 auto;border-radius:12px;}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont}
+body{margin:0;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+
+/* Notes */
+.section-notes{height:100vh;padding:16px;display:flex;flex-direction:column}
+textarea,input{border:none;background:none;color:var(--text);outline:none}
+textarea{flex:1;font-size:1.05rem}
+
+/* Bottom Bar */
+.floating-actions{
+position:fixed;bottom:0;left:0;right:0;
+display:flex;justify-content:space-around;
+padding:10px;background:var(--sheet);
+border-top:1px solid var(--border)
+}
+.btn-mini{width:48px;height:48px;border-radius:50%;border:none;
+background:var(--accent);color:#fff;font-size:1.2rem}
+
+/* Calculator Modal */
+.calc-modal{
+position:fixed;inset:0;background:rgba(0,0,0,.35);
+backdrop-filter:var(--blur);
+display:flex;align-items:flex-end;
+opacity:0;pointer-events:none;
+transition:.3s;
+}
+.calc-modal.show{opacity:1;pointer-events:auto}
+
+.calc-sheet{
+width:100%;background:var(--sheet);
+border-radius:20px 20px 0 0;
+padding:12px;
+transform:translateY(100%);
+transition:transform .35s cubic-bezier(.22,.61,.36,1);
+}
+.calc-modal.show .calc-sheet{transform:translateY(0)}
+
+.calc-header{display:flex;justify-content:space-between;align-items:center}
+#calc-display{width:100%;height:60px;font-size:2rem;text-align:right}
+
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.grid button{
+height:56px;border-radius:50%;
+border:none;background:var(--grey);font-size:1.1rem
+}
+.op{color:var(--accent)}
+.orange{background:var(--orange);color:#fff}
+.wide{grid-column:span 2;border-radius:28px;background:var(--accent);color:#fff}
+
+/* History */
+.history{
+max-height:0;overflow:hidden;
+transition:max-height .3s ease;
+}
+.history.show{max-height:160px}
+.history div{
+padding:6px;font-size:.95rem;
+border-bottom:1px solid var(--border);
+cursor:pointer
 }
 </style>
 </head>
-<body>
+
+<body data-theme="light">
 
 <div class="section-notes">
-  <input id="note-title" placeholder="Título da nota">
-  <textarea id="notes" placeholder="Começa a escrever..."></textarea>
+<input placeholder="Título">
+<textarea id="notes" placeholder="Escreve..."></textarea>
 </div>
 
 <div class="floating-actions">
-  <button class="btn-mini" id="darkBtn" title="Dark mode">🌙</button>
-  <div style="display:flex;gap:8px;align-items:center">
-    <button class="btn-mini" style="background:var(--accent)" id="openCalcBtn" title="Calculadora normal">🧮</button>
-    <button class="btn-mini" style="background:#6b5ce2" id="openSciCalcBtn" title="Calculadora científica">🔬</button>
-  </div>
-  <button class="btn-mini" style="background:var(--neutral)" onclick="copy()">📋</button>
-  <button class="btn-mini" style="background:var(--orange)" onclick="clearText()">🧹</button>
-  <button class="btn-mini" style="background:var(--danger)" onclick="deleteNote()">🗑</button>
-  <button class="btn-mini" style="background:var(--success)" onclick="save()">✓</button>
+<button id="dark">🌙</button>
+<button id="openCalc">🧮</button>
 </div>
 
-<!-- Modal da calculadora -->
-<div class="calc-modal" id="calcModal" onclick="closeCalc(event)">
-  <div class="calc-sheet" role="dialog" aria-modal="true" aria-label="Calculadora">
-    <div id="calc-header">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div class="calc-title" id="calcModeTitle">Calculadora — Básica</div>
-        <button class="mode-toggle" id="toggleModeBtn">Alternar para Científica</button>
-      </div>
-      <div>
-        <button class="close-calc" id="closeBtn" title="Fechar">✕</button>
-      </div>
-    </div>
+<div class="calc-modal" id="modal">
+<div class="calc-sheet" id="sheet">
 
-    <input id="calc-display" readonly aria-live="polite" />
+<div class="calc-header">
+<strong>Calculadora</strong>
+<div>
+<button id="historyBtn">🕘</button>
+<button id="close">✕</button>
+</div>
+</div>
 
-    <div class="grid" id="calc-grid"></div>
+<input id="calc-display" readonly>
 
-    <button class="send-btn" id="sendBtn">Enviar para Notas</button>
-  </div>
+<div class="history" id="history"></div>
+
+<div class="grid" id="grid"></div>
+
+<button id="send" class="wide">Enviar para Notas</button>
+
+</div>
 </div>
 
 <script>
-/* ELEMENTOS */
-const display = document.getElementById("calc-display");
-const notes = document.getElementById("notes");
-const modal = document.getElementById("calcModal");
-const openCalcBtn = document.getElementById("openCalcBtn");
-const openSciCalcBtn = document.getElementById("openSciCalcBtn");
-const toggleModeBtn = document.getElementById("toggleModeBtn");
-const calcModeTitle = document.getElementById("calcModeTitle");
-const closeBtn = document.getElementById("closeBtn");
-const sendBtn = document.getElementById("sendBtn");
-const darkBtn = document.getElementById("darkBtn");
+const modal=document.getElementById("modal");
+const sheet=document.getElementById("sheet");
+const display=document.getElementById("calc-display");
+const grid=document.getElementById("grid");
+const notes=document.getElementById("notes");
+const historyBox=document.getElementById("history");
 
-let calcMode = "basic"; // "basic" ou "scientific"
+let history=[];
 
-/* DEFINIÇÃO DE BOTÕES */
-const basicButtons = [
-  "C","%","÷","⌫",
-  "7","8","9","×",
-  "4","5","6","-",
-  "1","2","3","+",
-  "0",".","="
+const buttons=[
+"C","⌫","%","÷",
+"7","8","9","×",
+"4","5","6","-",
+"1","2","3","+",
+"0",".","="
 ];
 
-const scientificButtons = [
-  "C","%","÷","⌫",
-  "sin","cos","tan","^",
-  "ln","log","√","(",
-  "7","8","9",")",
-  "4","5","6","-",
-  "1","2","3","+",
-  "π","0",".","e",
-  "="
-];
-
-/* RENDERIZA CALCULADORA CONFORME MODO */
-function renderCalc(){
-  const grid = document.getElementById("calc-grid");
-  const list = calcMode === "basic" ? basicButtons : scientificButtons;
-  grid.innerHTML = list.map(b=>{
-    let cls = "";
-    if ("+-×=^".includes(b) || "sincos".includes(b)) cls = "btn-orange";
-    if ("C%⌫÷".includes(b)) cls = "btn-op";
-    if (b === "0") cls = "btn-blue";
-    // para manter compatibilidade, usar onclick
-    return `<button class="${cls}" onclick="press('${b}')">${b}</button>`;
-  }).join("");
-  calcModeTitle.textContent = calcMode === "basic" ? "Calculadora — Básica" : "Calculadora — Científica";
-  toggleModeBtn.textContent = calcMode === "basic" ? "Alternar para Científica" : "Alternar para Básica";
+function render(){
+grid.innerHTML="";
+buttons.forEach(b=>{
+const btn=document.createElement("button");
+btn.textContent=b;
+if("+-×=÷".includes(b))btn.classList.add("orange");
+if(["C","⌫","%"].includes(b))btn.classList.add("op");
+if(b==="0")btn.classList.add("wide");
+btn.onclick=()=>press(b);
+grid.appendChild(btn);
+});
 }
 
-/* FUNÇÃO DE AVALIAÇÃO "SEGURA" (substituições) */
-function safeEval(expr){
-  if (!expr) return null;
-  // Normalizar espaços
-  let e = expr.replace(/\s+/g, "");
-  // Substituições simples (todas as ocorrências)
-  e = e.replace(/×/g,'*').replace(/÷/g,'/').replace(/%/g,'%');
-  // transformar potências ^ -> **
-  e = e.replace(/\^/g,'**');
-  // funções e constantes mapeadas (uso Math.*)
-  e = e.replace(/π/g,'Math.PI');
-  // Se o utilizador inseriu 'e' como constante, já substituímos só quando for token único 'e' ou após operador.
-  // Para o nosso caso do botão, inserimos 'e' como 'Math.E' directamente, mas suportamos ' e ' também:
-  e = e.replace(/(^|[\+\-\*\/\^\(])e/g,'$1Math.E'); // cuidado para não substituir letra em outras ocorrências
-  // funções
-  e = e.replace(/sqrt\(/g,'Math.sqrt(');
-  e = e.replace(/√\(/g,'Math.sqrt(');
-  e = e.replace(/sin\(/g,'Math.sin(');
-  e = e.replace(/cos\(/g,'Math.cos(');
-  e = e.replace(/tan\(/g,'Math.tan(');
-  e = e.replace(/ln\(/g,'Math.log(');      // ln -> natural log
-  e = e.replace(/log\(/g,'Math.log10(');   // log -> base10
-  // Tratar percentagens terminadas por número: '50%' -> (50/100)
-  // Mas como temos botão % que no modo básico transforma o display, aqui tratamos quando aparece '%' char isolado
-  // Substituir números seguidos de % -> (num/100)
-  e = e.replace(/(\d+(\.\d+)?)%/g,'($1/100)');
-  // Evitar terminar com operador
-  if (/[+\-*/^%\.]$/.test(e)) return null;
-  try {
-    // eslint-disable-next-line no-eval
-    const val = eval(e);
-    if (typeof val === 'number' && !Number.isFinite(val)) return null;
-    if (typeof val === 'number' && !Number.isInteger(val)) return parseFloat(val.toFixed(10)).toString();
-    return String(val);
-  } catch (err) {
-    return null;
-  }
-}
-
-/* LOGICA DOS BOTÕES */
 function press(v){
-  if (v === "C"){ display.value = ""; return; }
-  if (v === "⌫"){ display.value = display.value.slice(0,-1); return; }
-  if (v === "%"){
-    // se houver um número, aplica percentagem ao número final
-    // exemplo: "50" -> "0.5"
-    // tentamos avaliar a expressão inteira primeiro
-    const val = safeEval(display.value);
-    if (val !== null){
-      display.value = String(Number(val)/100);
-    } else {
-      // se falhar, tenta apenas aplicar a percentagem ao último número
-      display.value += "%";
-    }
-    return;
-  }
-  if (v === "="){
-    const result = safeEval(display.value);
-    display.value = result === null ? "Erro" : result;
-    return;
-  }
-
-  // Funções científicas: quando o botão representa 'sin','cos','ln','sqrt','π','e' etc
-  const funcs = ["sin","cos","tan","ln","log","sqrt","√"];
-  if (funcs.includes(v)){
-    if (v === "√") display.value += "sqrt(";
-    else display.value += v + "(";
-    return;
-  }
-  if (v === "π"){ display.value += "π"; return; }
-  if (v === "e"){ display.value += "Math.E"; return; } // inserimos Math.E directo para evitar ambiguidades
-  // Prevenir operadores repetidos: se último for operador e novo também, substitui
-  const last = display.value.slice(-1);
-  const operators = "+-×÷*/^";
-  if (operators.includes(v) && operators.includes(last)){
-    display.value = display.value.slice(0,-1) + v;
-    return;
-  }
-  display.value += v;
+if(v==="C"){display.value="";return;}
+if(v==="⌫"){display.value=display.value.slice(0,-1);return;}
+if(v==="="){
+try{
+const exp=display.value.replace(/×/g,"*").replace(/÷/g,"/");
+const res=eval(exp);
+history.unshift(`${display.value} = ${res}`);
+updateHistory();
+display.value=res;
+}catch{display.value="Erro"}
+return;
+}
+display.value+=v;
 }
 
-/* ABRIR / FECHAR CALCULADORA (normal ou científica) */
-function openCalc(mode="basic"){
-  calcMode = mode;
-  renderCalc();
-  modal.style.display = "flex";
-  // manter o display como está (não limpar)
+function updateHistory(){
+historyBox.innerHTML="";
+history.slice(0,5).forEach(h=>{
+const d=document.createElement("div");
+d.textContent=h;
+d.onclick=()=>display.value=h.split("=")[1].trim();
+historyBox.appendChild(d);
+});
 }
-openCalcBtn.addEventListener("click", ()=> openCalc("basic"));
-openSciCalcBtn.addEventListener("click", ()=> openCalc("scientific"));
 
-function closeCalc(e){
-  // clicar fora fecha
-  if (e.target === modal) modal.style.display = "none";
-}
-closeBtn.addEventListener("click", ()=> modal.style.display = "none");
+document.getElementById("openCalc").onclick=()=>modal.classList.add("show");
+document.getElementById("close").onclick=()=>modal.classList.remove("show");
+document.getElementById("historyBtn").onclick=()=>historyBox.classList.toggle("show");
+document.getElementById("send").onclick=()=>{
+if(display.value)notes.value+=`• ${display.value}\n`;
+};
 
-/* Alternar modo dentro da modal */
-toggleModeBtn.addEventListener("click", ()=>{
-  calcMode = calcMode === "basic" ? "scientific" : "basic";
-  renderCalc();
+/* Swipe gestures */
+let startY=0,startX=0;
+sheet.addEventListener("touchstart",e=>{
+startY=e.touches[0].clientY;
+startX=e.touches[0].clientX;
+});
+sheet.addEventListener("touchend",e=>{
+const dy=e.changedTouches[0].clientY-startY;
+const dx=e.changedTouches[0].clientX-startX;
+if(dy>80)modal.classList.remove("show");
+if(dy<-80)historyBox.classList.add("show");
+if(dx>80)display.value="";
 });
 
-/* ENVIAR RESULTADO — NÃO FECHAR A MODAL */
-sendBtn.addEventListener("click", ()=>{
-  if (!display.value || display.value === "Erro") return;
-  // avaliar antes de enviar (se for expressão)
-  const evaluated = safeEval(display.value);
-  const toSend = evaluated === null ? display.value : evaluated;
-  notes.value += `• ${toSend}\n`;
-  notes.focus();
-  // NÃO fechar modal — o utilizador pediu explicitamente que não feche
-});
+/* Dark mode */
+document.getElementById("dark").onclick=()=>{
+document.body.dataset.theme=
+document.body.dataset.theme==="dark"?"light":"dark";
+};
 
-/* COPIAR / LIMPAR / GUARDAR / APAGAR */
-function copy(){ navigator.clipboard.writeText(notes.value).catch(()=>alert('Não foi possível copiar')); }
-function clearText(){ notes.value=""; }
-function save(){ alert("Guardado"); }
-function deleteNote(){ notes.value=""; document.getElementById("note-title").value=""; }
-
-/* DARK MODE (guarda em localStorage) */
-function applyTheme(theme){
-  document.body.setAttribute("data-theme", theme);
-  localStorage.setItem("pronotes-theme", theme);
-  darkBtn.textContent = theme === "dark" ? "☀️" : "🌙";
-}
-darkBtn.addEventListener("click", ()=>{
-  const current = document.body.getAttribute("data-theme") || "light";
-  applyTheme(current === "light" ? "dark" : "light");
-});
-(function initTheme(){
-  const saved = localStorage.getItem("pronotes-theme") || "light";
-  applyTheme(saved);
-})();
-
-/* Inicializar */
-renderCalc();
+render();
 </script>
 
 </body>
