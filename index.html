@@ -51,30 +51,32 @@
     .calc-preview-bubble.active { opacity: 1; transform: translateX(-50%) translateY(0); }
     .calc-preview-bubble span { color: var(--text); opacity: 0.5; font-weight: 400; font-size: 0.8rem; }
 
-    /* --- DOCK (UPDATED: TAMANHO UNIFORME) --- */
+    /* --- DOCK UNIFORME --- */
     .dock-bar {
         position: fixed; bottom: calc(25px + env(safe-area-inset-bottom)); left: 15px; right: 15px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-        padding: 10px 10px; border-radius: 45px;
+        padding: 12px; border-radius: 50px;
         display: flex; justify-content: space-between; align-items: center;
         box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid rgba(128,128,128,0.2); z-index: 100;
+        gap: 5px; /* Espaçamento entre botões */
     }
+    
+    /* Estilo base para TODOS os botões da dock serem iguais */
     .dock-btn {
-        width: 48px; height: 48px; border-radius: 50%; border: none;
-        background: transparent; color: var(--accent); font-size: 1.3rem;
+        width: 50px; height: 50px; /* Tamanho fixo igual para todos */
+        border-radius: 50%; border: none;
+        background: transparent; color: var(--accent); 
+        font-size: 1.4rem;
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         transition: transform 0.1s, background 0.2s;
+        padding: 0; margin: 0;
     }
     .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.15); }
     
-    /* Botão Calc (Destaque apenas na cor, tamanho igual) */
+    /* Cores específicas */
     .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
-    
-    /* Botão Novo (Destaque sutil) */
-    .dock-btn.new-note { color: var(--text); background: rgba(128,128,128,0.15); font-weight: 600; font-size: 1.5rem; }
-
-    /* Botão Limpar (Vermelho) */
     .dock-btn.danger-action { color: var(--red); }
+    .dock-btn.new-note { color: var(--text); font-weight: 600; font-size: 1.6rem; }
 
     /* --- SHEETS --- */
     .overlay {
@@ -155,7 +157,8 @@
 
     <div class="dock-bar">
         <button class="dock-btn" id="btnTheme">◑</button>
-        <button class="dock-btn danger-action" id="btnClear">🗑</button> <button class="dock-btn new-note" id="btnNew">＋</button>
+        <button class="dock-btn danger-action" id="btnClear">🗑</button>
+        <button class="dock-btn new-note" id="btnNew">＋</button>
         <button class="dock-btn main-action" id="btnOpenCalc">🧮</button>
         <button class="dock-btn" id="btnConverter">⇄</button>
         <button class="dock-btn" id="btnSave">💾</button>
@@ -240,7 +243,7 @@
         if(titleInput.value.trim() || noteBody.value.trim()) {
             if(confirm("Limpar todo o conteúdo do editor?")) { clearEditor(); }
         } else {
-            // Se já estiver vazio, não faz nada ou foca apenas
+            // Se já estiver vazio, foca apenas
             titleInput.focus();
         }
     };
