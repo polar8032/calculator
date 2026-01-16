@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Pro Notes iOS Fixed %</title>
+<title>Pro Notes & Smart Calc</title>
 <style>
     :root {
         --bg: #f2f2f7; --card: #fff; --text: #000;
         --accent: #007aff; --orange: #ff9500; --red: #ff3b30;
         --sheet-bg: rgba(255, 255, 255, 0.95);
         --btn-grey: #e5e5ea; --btn-text: #000;
-        --border: #c6c6c8;
-        --blur: blur(25px);
+        --border: #c6c6c8; --blur: blur(25px);
     }
     [data-theme="dark"] {
         --bg: #000; --card: #1c1c1e; --text: #fff;
@@ -27,59 +26,37 @@
         display: flex; flex-direction: column;
     }
 
-    /* Área de Edição */
+    /* Editor */
     .editor { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 100px 20px; }
-    input#title {
-        background: transparent; border: none; font-size: 2rem; font-weight: 700;
-        color: var(--text); outline: none; margin-bottom: 15px; width: 100%;
-    }
-    textarea#notes {
-        flex: 1; background: transparent; border: none; font-size: 1.2rem; line-height: 1.6;
-        color: var(--text); outline: none; resize: none;
-    }
+    input#title { background: transparent; border: none; font-size: 2rem; font-weight: 700; color: var(--text); outline: none; margin-bottom: 15px; }
+    textarea#notes { flex: 1; background: transparent; border: none; font-size: 1.2rem; color: var(--text); outline: none; resize: none; }
 
     /* Barra Inferior */
     .bottom-bar {
         position: fixed; bottom: 25px; left: 20px; right: 20px;
-        background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-        padding: 8px; border-radius: 40px;
-        display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.15); border: 1px solid var(--border); z-index: 100;
+        background: var(--sheet-bg); backdrop-filter: var(--blur); padding: 8px; border-radius: 40px;
+        display: flex; justify-content: space-between; border: 1px solid var(--border); z-index: 100;
     }
-    .circle-btn {
-        width: 54px; height: 54px; border-radius: 50%; border: none;
-        background: transparent; color: var(--accent); font-size: 1.4rem;
-        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
+    .circle-btn { width: 54px; height: 54px; border-radius: 50%; border: none; background: transparent; color: var(--accent); font-size: 1.4rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .circle-btn.primary { background: var(--accent); color: #fff; }
 
-    /* Modais */
-    .modal-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
-        opacity: 0; pointer-events: none; transition: opacity 0.3s;
-    }
+    /* Modal Sheets */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .modal-overlay.open { opacity: 1; pointer-events: auto; }
-    .sheet {
-        position: absolute; bottom: 0; left: 0; right: 0;
-        background: var(--sheet-bg); border-radius: 30px 30px 0 0; 
-        transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1);
-        max-height: 92vh; display: flex; flex-direction: column;
-    }
+    .sheet { position: absolute; bottom: 0; left: 0; right: 0; background: var(--sheet-bg); border-radius: 30px 30px 0 0; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.19, 1, 0.22, 1); max-height: 95vh; display: flex; flex-direction: column; }
     .modal-overlay.open .sheet { transform: translateY(0); }
-    .drag-handle { width: 100%; height: 35px; display: flex; justify-content: center; align-items: center; }
+    .drag-handle { width: 100%; height: 30px; display: flex; justify-content: center; align-items: center; }
     .drag-pill { width: 45px; height: 5px; background: var(--border); border-radius: 10px; }
 
     /* Calculadora */
     .calc-body { padding: 0 20px 40px 20px; display: flex; flex-direction: column; align-items: center; }
-    #calc-display {
-        width: 100%; text-align: right; font-size: 3.5rem; border: none;
-        background: transparent; color: var(--text); font-weight: 300; margin-bottom: 10px;
-    }
+    #calc-display { width: 100%; text-align: right; font-size: 3.5rem; border: none; background: transparent; color: var(--text); font-weight: 300; margin-bottom: 5px; outline: none; }
+    
+    /* Histórico */
+    #calc-history { width: 100%; text-align: right; font-size: 1.1rem; color: var(--text-sec); height: 1.5rem; margin-bottom: 10px; padding-right: 10px; overflow: hidden; opacity: 0.7; }
+
     .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 340px; }
-    .c-btn {
-        width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 1.6rem;
-        background: var(--btn-grey); color: var(--btn-text); display: flex; align-items: center; justify-content: center;
-    }
+    .c-btn { width: 70px; height: 70px; border-radius: 50%; border: none; font-size: 1.6rem; background: var(--btn-grey); color: var(--btn-text); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .c-btn.orange { background: var(--orange); color: #fff; }
     .c-btn.wide { grid-column: span 2; width: 100%; border-radius: 40px; justify-content: flex-start; padding-left: 28px; }
 
@@ -87,12 +64,9 @@
     .sci-grid.show { display: grid; }
     .s-btn { height: 45px; background: var(--btn-grey); border: none; border-radius: 8px; color: var(--text); font-size: 0.9rem; }
 
-    /* Lista */
-    .list-body { padding: 0 20px 40px 20px; overflow-y: auto; width: 100%; }
-    .note-item {
-        background: var(--card); padding: 16px; border-radius: 14px; margin-bottom: 12px;
-        display: flex; justify-content: space-between; align-items: center;
-    }
+    /* Lista Notas */
+    .list-body { padding: 0 20px 40px 20px; overflow-y: auto; }
+    .note-item { background: var(--card); padding: 16px; border-radius: 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
     .del-btn { color: var(--red); background: rgba(255,59,48,0.1); width: 40px; height: 40px; border-radius: 50%; border: none; }
 </style>
 </head>
@@ -100,7 +74,7 @@
 
     <div class="editor">
         <input type="text" id="title" placeholder="Título">
-        <textarea id="notes" placeholder="Escreve aqui..."></textarea>
+        <textarea id="notes" placeholder="Começa a escrever..."></textarea>
     </div>
 
     <div class="bottom-bar">
@@ -115,11 +89,13 @@
         <div class="sheet" id="sheetCalc">
             <div class="drag-handle"><div class="drag-pill"></div></div>
             <div class="calc-body">
+                <div id="calc-history"></div>
                 <input id="calc-display" readonly value="0">
                 <div style="width:100%; display:flex; justify-content:space-between; margin-bottom:15px;">
                     <button style="background:none; border:none; color:var(--accent); font-weight:600;" id="toggleSci">Científica</button>
                     <button style="background:none; border:none; color:var(--orange); font-weight:600;" id="pasteBtn">Inserir na Nota</button>
                 </div>
+
                 <div class="sci-grid" id="sciGrid">
                     <button class="s-btn" onclick="math('sin')">sin</button>
                     <button class="s-btn" onclick="math('cos')">cos</button>
@@ -132,23 +108,28 @@
                     <button class="s-btn" onclick="insert('3.14159')">π</button>
                     <button class="s-btn" onclick="insert('2.718')">e</button>
                 </div>
+
                 <div class="calc-grid">
-                    <button class="c-btn" onclick="clearC()">AC</button>
-                    <button class="c-btn" onclick="back()">⌫</button>
-                    <button class="c-btn" onclick="applyPercent()">%</button>
+                    <button class="c-btn" style="background:#d4d4d2" onclick="clearC()">AC</button>
+                    <button class="c-btn" style="background:#d4d4d2" onclick="back()">⌫</button>
+                    <button class="c-btn" style="background:#d4d4d2" onclick="insert('%')">%</button>
                     <button class="c-btn orange" onclick="insert('/')">÷</button>
+                    
                     <button class="c-btn" onclick="insert('7')">7</button>
                     <button class="c-btn" onclick="insert('8')">8</button>
                     <button class="c-btn" onclick="insert('9')">9</button>
                     <button class="c-btn orange" onclick="insert('*')">×</button>
+                    
                     <button class="c-btn" onclick="insert('4')">4</button>
                     <button class="c-btn" onclick="insert('5')">5</button>
                     <button class="c-btn" onclick="insert('6')">6</button>
                     <button class="c-btn orange" onclick="insert('-')">−</button>
+                    
                     <button class="c-btn" onclick="insert('1')">1</button>
                     <button class="c-btn" onclick="insert('2')">2</button>
                     <button class="c-btn" onclick="insert('3')">3</button>
                     <button class="c-btn orange" onclick="insert('+')">+</button>
+                    
                     <button class="c-btn wide" onclick="insert('0')">0</button>
                     <button class="c-btn" onclick="insert('.')">,</button>
                     <button class="c-btn orange" onclick="calc()">=</button>
@@ -161,7 +142,7 @@
         <div class="sheet" id="sheetList">
             <div class="drag-handle"><div class="drag-pill"></div></div>
             <div class="list-body">
-                <h2>Notas Guardadas</h2>
+                <h2 style="margin: 0 0 15px 0;">Minhas Notas</h2>
                 <div id="savedContainer"></div>
             </div>
         </div>
@@ -171,40 +152,67 @@
     const titleIn = document.getElementById('title');
     const notesIn = document.getElementById('notes');
     const display = document.getElementById('calc-display');
+    const historyDisp = document.getElementById('calc-history');
 
     // UI
     document.getElementById('btnTheme').onclick = () => document.body.dataset.theme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
-    document.getElementById('btnClear').onclick = () => { if(confirm('Limpar?')) { titleIn.value = ''; notesIn.value = ''; }};
+    document.getElementById('btnClear').onclick = () => { if(confirm('Limpar tudo?')) { titleIn.value = ''; notesIn.value = ''; }};
 
-    // Calc
-    function insert(v) { if(display.value==='0' && !isNaN(v)) display.value=''; display.value += v; }
-    function clearC() { display.value = '0'; }
-    function back() { display.value = display.value.slice(0,-1) || '0'; }
-    
-    // FIX PERCENTAGEM: Converte o número atual para decimal
-    function applyPercent() {
-        try {
-            let currentVal = eval(display.value.replace(/×/g,'*').replace(/÷/g,'/'));
-            display.value = currentVal / 100;
-        } catch { display.value = 'Erro'; }
+    // --- LÓGICA CALCULADORA ---
+    function insert(v) { 
+        if(display.value === '0' && v !== '.') display.value = '';
+        display.value += v; 
     }
+    function clearC() { display.value = '0'; historyDisp.innerText = ''; }
+    function back() { display.value = display.value.length > 1 ? display.value.slice(0,-1) : '0'; }
 
     function calc() {
-        try { display.value = eval(display.value.replace(/×/g,'*').replace(/÷/g,'/')); }
-        catch { display.value = 'Erro'; }
+        try {
+            let expression = display.value.replace(/×/g, '*').replace(/÷/g, '/');
+            
+            // LÓGICA DE PERCENTAGEM INTELIGENTE (Ex: 5 + 10%)
+            // Regex procura por [número] [operador] [número]%
+            const percentRegex = /(\d+\.?\d*)([\+\-\*\/])(\d+\.?\d*)%/;
+            const match = expression.match(percentRegex);
+
+            if (match) {
+                const n1 = parseFloat(match[1]);
+                const op = match[2];
+                const p = parseFloat(match[3]);
+                let result;
+
+                if (op === '+' || op === '-') {
+                    // 5 + 10% vira 5 + (5 * 0.1)
+                    const adjustment = n1 * (p / 100);
+                    result = op === '+' ? n1 + adjustment : n1 - adjustment;
+                } else {
+                    // 5 * 10% vira 5 * 0.1
+                    result = eval(`${n1}${op}${p/100}`);
+                }
+                historyDisp.innerText = display.value + " =";
+                display.value = result;
+            } else {
+                // Caso não haja %, tenta tratar % isolado (ex: 50%)
+                if (expression.includes('%')) {
+                    expression = expression.replace(/(\d+\.?\d*)%/g, "($1/100)");
+                }
+                const res = eval(expression);
+                historyDisp.innerText = display.value + " =";
+                display.value = res;
+            }
+        } catch { display.value = 'Erro'; }
     }
 
     function math(type) {
         try {
-            let val = eval(display.value);
+            let val = eval(display.value.replace(/×/g, '*').replace(/÷/g, '/'));
             display.value = type === 'sqrt' ? Math.sqrt(val) : type === 'pow' ? Math.pow(val, 2) : Math[type](val);
         } catch { display.value = 'Erro'; }
     }
 
     document.getElementById('toggleSci').onclick = (e) => {
         e.stopPropagation();
-        const grid = document.getElementById('sciGrid');
-        grid.classList.toggle('show');
+        document.getElementById('sciGrid').classList.toggle('show');
     };
 
     document.getElementById('pasteBtn').onclick = (e) => {
@@ -213,36 +221,40 @@
         closeModal('modalCalc');
     };
 
-    // Notes
+    // --- NOTAS ---
     document.getElementById('btnSave').onclick = () => {
-        const notes = JSON.parse(localStorage.getItem('myNotesPro') || '[]');
+        if(!titleIn.value && !notesIn.value) return;
+        const notes = JSON.parse(localStorage.getItem('proNotes_v2') || '[]');
         notes.unshift({ id: Date.now(), title: titleIn.value || 'Sem título', body: notesIn.value });
-        localStorage.setItem('myNotesPro', JSON.stringify(notes));
+        localStorage.setItem('proNotes_v2', JSON.stringify(notes));
         alert('Guardado!'); titleIn.value = ''; notesIn.value = '';
     };
 
     function renderList() {
         const div = document.getElementById('savedContainer');
-        const notes = JSON.parse(localStorage.getItem('myNotesPro') || '[]');
+        const notes = JSON.parse(localStorage.getItem('proNotes_v2') || '[]');
         div.innerHTML = notes.map(n => `
             <div class="note-item">
-                <div onclick="loadNote(${n.id})"><strong>${n.title}</strong><br><small>${n.body.substring(0,30)}...</small></div>
+                <div onclick="loadNote(${n.id})" style="flex:1">
+                    <strong>${n.title}</strong><br><small style="color:gray">${n.body.substring(0,35)}...</small>
+                </div>
                 <button class="del-btn" onclick="delNote(${n.id})">✕</button>
-            </div>`).join('') || '<p>Vazio</p>';
+            </div>`).join('') || '<p style="text-align:center">Nenhuma nota guardada.</p>';
     }
 
     window.loadNote = (id) => {
-        const n = JSON.parse(localStorage.getItem('myNotesPro')).find(x => x.id === id);
+        const n = JSON.parse(localStorage.getItem('proNotes_v2')).find(x => x.id === id);
         titleIn.value = n.title; notesIn.value = n.body; closeModal('modalList');
     };
 
     window.delNote = (id) => {
-        let notes = JSON.parse(localStorage.getItem('myNotesPro')).filter(x => x.id !== id);
-        localStorage.setItem('myNotesPro', JSON.stringify(notes));
+        if(!confirm('Apagar nota?')) return;
+        let notes = JSON.parse(localStorage.getItem('proNotes_v2')).filter(x => x.id !== id);
+        localStorage.setItem('proNotes_v2', JSON.stringify(notes));
         renderList();
     };
 
-    // Modais & Swipe
+    // --- GESTOS ---
     function openModal(id) { document.getElementById(id).classList.add('open'); if(id==='modalList') renderList(); }
     function closeModal(id) { document.getElementById(id).classList.remove('open'); document.querySelector(`#${id} .sheet`).style.transform = ''; }
     
@@ -252,20 +264,22 @@
     document.querySelectorAll('.modal-overlay').forEach(m => {
         const s = m.querySelector('.sheet');
         let startY = 0;
-        s.ontouchstart = e => startY = e.touches[0].clientY;
-        s.ontouchmove = e => {
+        s.addEventListener('touchstart', e => startY = e.touches[0].clientY, {passive: true});
+        s.addEventListener('touchmove', e => {
             let diff = e.touches[0].clientY - startY;
             if(diff > 0) s.style.transform = `translateY(${diff}px)`;
-        };
-        s.ontouchend = e => {
-            if(e.changedTouches[0].clientY - startY > 120) closeModal(m.id);
+        }, {passive: true});
+        s.addEventListener('touchend', e => {
+            if(e.changedTouches[0].clientY - startY > 150) closeModal(m.id);
             else s.style.transform = '';
-        };
+        });
         m.onclick = e => { if(e.target === m) closeModal(m.id); };
     });
 </script>
 </body>
 </html>
+
+
 
 
 
