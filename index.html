@@ -33,7 +33,7 @@
         height: 100dvh; overflow: hidden; display: flex; flex-direction: column;
     }
 
-    /* --- EDITOR DE NOTAS --- */
+    /* --- EDITOR --- */
     .editor-area { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 110px 20px; position: relative; }
     
     input#titleInput {
@@ -72,7 +72,6 @@
         transition: transform 0.1s;
     }
     .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.15); }
-    
     .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); width: 48px; height: 48px; font-size: 1.5rem; }
     .dock-btn.new-action { background: rgba(52, 199, 89, 0.15); color: var(--green); width: 44px; height: 44px; font-size: 1.5rem; font-weight: 600; }
     .dock-btn.new-action:active { background: var(--green); color: #fff; }
@@ -104,7 +103,7 @@
     .alert-btn.bold { font-weight: 700; }
     .alert-btn:active { background: rgba(128,128,128,0.1); }
 
-    /* --- SHEETS (CORRIGIDO PARA ALTURA FIXA E GRANDE) --- */
+    /* --- SHEETS (CORRIGIDO - ALTURA FIXA) --- */
     .overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
         opacity: 0; pointer-events: none; transition: opacity 0.3s; height: 100dvh; 
@@ -120,7 +119,8 @@
         display: flex; flex-direction: column; 
         
         /* AQUI ESTÁ A CORREÇÃO: ALTURA FIXA DE 92% DO ECRÃ */
-        height: 92dvh; 
+        height: 92vh; 
+        height: 92dvh; /* Força bruta para garantir altura */
         
         padding-bottom: env(safe-area-inset-bottom);
         backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
@@ -128,22 +128,24 @@
     }
     .overlay.active .sheet { transform: translateY(0); }
     
-    .handle-area { width: 100%; padding: 15px 0; display: flex; justify-content: center; flex-shrink: 0; cursor: grab; }
+    .handle-area { width: 100%; padding: 15px 0; display: flex; justify-content: center; flex-shrink: 0; }
     .handle-bar { width: 40px; height: 5px; background: var(--border); border-radius: 10px; opacity: 0.8; }
 
-    /* --- CONTENTORES (PREENCHEM O RESTO DA SHEET) --- */
+    /* --- CONTENTORES (PREENCHEM A SHEET) --- */
     .calc-container, .list-container { 
         padding: 0 20px 20px 20px; 
         display: flex; 
         flex-direction: column; 
         align-items: center; 
-        flex: 1;           /* Ocupa todo o espaço disponível na sheet */
-        overflow-y: auto;  /* Permite scroll se o conteúdo for maior que o espaço */
+        /* Isto obriga o conteúdo a esticar até ao fim da sheet */
+        flex: 1;           
+        height: 100%;
+        overflow-y: auto;
         width: 100%; 
     }
     
-    /* Nota: .list-container já não precisa de height específica porque a .sheet já é grande */
-    .list-container { display: block; } /* Para a lista, display block funciona bem para os cards */
+    /* Reset específico para a lista para não ser centrada verticalmente */
+    .list-container { display: block; } 
 
     /* --- CALCULADORA --- */
     .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; flex-shrink: 0; }
@@ -159,7 +161,7 @@
     .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; flex-shrink: 0; }
     .sci-row.show { display: grid; }
     .sci-btn { height: 40px; border-radius: 10px; border: none; background: var(--btn-grey); color: var(--text); font-size: 0.8rem; font-weight: 600; }
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 380px; margin-bottom: 10px; flex-shrink: 0; margin-top: auto; /* Empurra o teclado para baixo */ }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 380px; margin-bottom: 10px; flex-shrink: 0; margin-top: auto; }
     .key-btn { aspect-ratio: 1/1; width: 100%; max-width: 75px; border-radius: 50%; border: none; font-size: 1.7rem; background: var(--btn-grey); color: var(--btn-text); display: flex; align-items: center; justify-content: center; margin: 0 auto; }
     .key-btn:active { filter: brightness(0.85); }
     .key-btn.orange { background: var(--orange); color: #fff; }
