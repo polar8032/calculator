@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Pro Notes (Dark Mode Melhorado)</title>
+    <style>
+        /* --- CORES BASE (Light Mode) --- */
+        :root { 
+            --bg-main: #f2f2f7; /* Fundo geral estilo iOS */
+            --bg-section: #ffffff; /* Fundo dos cartões */
+            --text-color: #1c1c1e; /* Texto quase preto */
+            --text-secondary: #8e8e93;
+            --accent: #007aff; /* Azul iOS */
+            --grey-btn: #f2f2f7; /* Botões padrão */
+            --op-bg: #e5e5ea; /* Botões de topo calculadora */
+            --border-color: #d1d1d6; 
+            --success: #34c759; 
+            --danger: #ff3b30; 
+            --clear-btn: #ff9500; /* Laranja para o botão de limpar */
+            --neutral: #8e8e93; 
+            --orange: #ff9500; /* Operadores */
+            --modal-bg: #ffffff;
+            --btn-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* --- DARK MODE REVAMPED --- */
+        [data-theme="dark"] {
+            /* Fundo mais profundo e rico */
+            --bg-main: #121212; 
+            /* Secções com cinzento escuro "Midnight" para contraste */
+            --bg-section: #272729; 
+            /* Texto "off-white" para menos cansaço visual */
+            --text-color: #ededed;
+            --text-secondary: #98989d;
+            /* Botões mais escuros */
+            --grey-btn: #38383a; 
+            --op-bg: #505053; 
+            /* Bordas mais subtis no escuro */
+            --border-color: #424244; 
+            --modal-bg: #323234;
+            /* Laranja ligeiramente mais vibrante para contraste */
+            --orange: #ff9f0a;
+            --clear-btn: #ff9f0a;
+            /* Sombras mais definidas para profundidade no escuro */
+            --btn-shadow: 0 3px 8px rgba(0,0,0,0.4);
+        }
+
+        /* Ajustes específicos de Dark Mode para botões */
+        [data-theme="dark"] .grid button, 
+        [data-theme="dark"] .btn-mini,
+        [data-theme="dark"] .conv-input, 
+        [data-theme="dark"] .conv-select,
+        [data-theme="dark"] .conv-result {
+            border-color: transparent; /* Remove bordas cinzentas para look mais limpo */
+        }
+        [data-theme="dark"] .grid button {
+             box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Profundidade nos botões */
+        }
+
+        /* --- ESTILOS GERAIS --- */
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; transition: background-color 0.3s ease, color 0.3s ease; }
+        body { margin: 0; display: flex; height: 100vh; overflow: hidden; background: var(--bg-main); color: var(--text-color); }
+        .container { display: flex; width: 100%; height: 100%; max-width: 1200px; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
+        
+        /* Layout das Secções */
+        .section-calc { flex: 0.4; min-width: 340px; padding: 25px; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); background: var(--bg-section); overflow-y: auto; }
+        .section-notes { flex: 0.6; padding: 25px; display: flex; flex-direction: column; position: relative; background: var(--bg-section); }
+        
+        /* Calculadora Display */
+        #calc-display { width: 100%; height: 70px; font-size: 2.5rem; font-weight: 500; text-align: right; border: none; outline: none; background: transparent; color: var(--text-color); margin-bottom: 15px; letter-spacing: 1px; }
+        
+        /* Grelha de Botões */
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; justify-items: center; }
+        .grid.scientific { grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        
+        .grid button { width: 55px; height: 55px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--grey-btn); font-size: 1.1rem; cursor: pointer; color: var(--text-color); display: flex; align-items: center; justify-content: center; user-select: none; }
+        .grid button:active { transform: scale(0.92); filter: brightness(0.9); }
+        .btn-op { background: var(--op-bg) !important; color: var(--accent) !important; font-weight: 600; font-size: 1.2rem !important;}
+        .btn-sci { background: var(--accent) !important; color: white !important; font-size: 0.8rem !important; border: none !important; font-weight: 500; }
+        .btn-orange { background: var(--orange) !important; color: white !important; border: none !important; font-size: 1.5rem !important; padding-bottom: 4px;}
+        .btn-blue { background: var(--accent) !important; color: white !important; border: none !important; grid-column: span 2; width: 100% !important; border-radius: 30px !important; }
+        
+        /* Conversor */
+        .converter-box { margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+        .conv-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .conv-input, .conv-select { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--grey-btn); color: var(--text-color); font-size: 0.9rem; outline: none; -webkit-appearance: none; }
+        .conv-result { background: var(--grey-btn); padding: 14px; border-radius: 10px; font-size: 0.95rem; color: var(--accent); font-weight: 600; text-align: center; border: 1px dashed var(--border-color); cursor: pointer; min-height: 45px; display: flex; align-items: center; justify-content: center; }
+
+        /* Modais */
+        .modal-notes { position: absolute; top: 70px; right: 25px; width: 300px; background: var(--modal-bg); box-shadow: var(--btn-shadow); border-radius: 14px; display: none; z-index: 100; padding: 15px; border: 1px solid var(--border-color); }
+        
+        /* Área de Notas */
+        textarea { width: 100%; flex-grow: 1; border: none; outline: none; resize: none; font-size: 1.15rem; line-height: 1.5; background: transparent; color: var(--text-color); margin-top: 20px; }
+        textarea::placeholder { color: var(--text-secondary); }
+        
+        /* Botões Flutuantes */
+        .floating-actions { position: absolute; bottom: 25px; right: 25px; display: flex; gap: 12px; }
+        .btn-mini { width: 46px; height: 46px; border-radius: 50%; border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: var(--btn-shadow); font-size: 1.2rem; transition: transform 0.2s; }
+        .btn-mini:hover { transform: translateY(-2px); }
+        .btn-mini:active { transform: scale(0.95); }
+
+        /* Input Título */
+        #note-title { flex:1; background:none; border:none; color:var(--text-color); outline:none; font-weight:700; font-size:1.3rem; padding: 5px 0; }
+        #note-title::placeholder { color: var(--text-secondary); opacity: 0.7; }
+    </style>
+</head>
+<body data-theme="light">
+
+<div class="container">
+    <div class="section-calc">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <button class="theme-btn" onclick="toggleTheme()" style="background:var(--grey-btn); border:none; cursor:pointer; font-size:1.1rem; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">🌙</button>
+            <button onclick="toggleScientific()" style="background:var(--grey-btn); border:none; cursor:pointer; font-size:1.1rem; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;" title="Alternar Científica">⚛️</button>
+        </div>
+        
+        <input type="text" id="calc-display" readonly placeholder="0">
+        <div id="calc-grid" class="grid"></div>
+        
+        <div style="display:flex; gap:12px; margin-top:20px">
+            <button class="btn-mini" style="background:var(--grey-btn); color:var(--text-color); border:1px solid var(--border-color); box-shadow:none;" onclick="toggleModal('calc-history-modal')">🕒</button>
+            <button class="btn-mini" style="background:var(--accent); width: auto; padding: 0 20px; border-radius: 25px; font-weight: 600; font-size: 1rem;" onclick="sendToNotes(display.value)">Enviar para Notas →</button>
+        </div>
+
+        <div class="converter-box">
+            <div class="conv-row">
+                <select id="conv-type" class="conv-select" onchange="updateUnits()">
+                    <option value="length">Comprimento (km, m, cm...)</option>
+                    <option value="volume">Volume (L, dl, cl...)</option>
+                </select>
+            </div>
+            <div class="conv-row">
+                <input type="number" id="conv-value" class="conv-input" placeholder="Valor" oninput="doConversion()">
+                <select id="unit-from" class="conv-select" onchange="doConversion()"></select>
+            </div>
+            <div class="conv-row">
+                <select id="unit-to" class="conv-select" onchange="doConversion()"></select>
+            </div>
+            <div id="conv-result" class="conv-result" onclick="sendToNotes(this.innerText)">Resultado...</div>
+        </div>
+
+        <div id="calc-history-modal" style="display:none; margin-top:10px; background:var(--modal-bg); padding:10px; border-radius:12px; border:1px solid var(--border-color); box-shadow: var(--btn-shadow); position: absolute; width: 85%; z-index: 20;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px; color: var(--text-color);"><strong>HISTÓRICO</strong> <button onclick="clearCalcHistory()" style="color:var(--danger); background:none; border:none; cursor:pointer; font-weight:600;">Limpar</button></div>
+            <div id="calc-history-list" style="max-height: 150px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div class="section-notes">
+        <div style="display:flex; gap:15px; align-items:center; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+            <button onclick="createNewNote()" style="background:var(--accent); color:white; border:none; width:42px; height:42px; border-radius:50%; cursor:pointer; font-size:1.5rem; box-shadow: var(--btn-shadow);">+</button>
+            <input type="text" id="note-title" placeholder="Título da Nota">
+            <button onclick="toggleModal('history-modal')" style="background:var(--grey-btn); border:none; color:var(--text-color); width:42px; height:42px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">📁</button>
+            <div id="history-modal" class="modal-notes">
+                <div style="font-weight:bold; margin-bottom:10px; color:var(--text-color)">As minhas notas</div>
+                <div id="history-list" style="max-height: 300px; overflow-y: auto;"></div>
+            </div>
+        </div>
+        
+        <textarea id="notes" placeholder="Começa a escrever aqui..."></textarea>
+        
+        <div class="floating-actions">
+            <button class="btn-mini" style="background:var(--neutral)" onclick="copyToClipboard()" title="Copiar tudo">📋</button>
+            <button class="btn-mini" style="background:var(--clear-btn)" onclick="clearCurrentNoteText()" title="Limpar texto da nota">🧹</button>
+            <button class="btn-mini" style="background:var(--danger)" onclick="deleteNote()" title="Apagar nota permanentemente">🗑</button>
+            <button class="btn-mini" style="background:var(--success)" onclick="saveCurrentNote(true)" title="Guardar">✓</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const display = document.getElementById('calc-display');
+    const grid = document.getElementById('calc-grid');
+    const notesArea = document.getElementById('notes');
+    const titleInput = document.getElementById('note-title');
+    let isScientific = false;
+
+    // --- CALCULADORA ---
+    function toggleScientific() { isScientific = !isScientific; grid.classList.toggle('scientific', isScientific); renderButtons(); }
+
+    function renderButtons() {
+        const sciBtns = isScientific ? [
+            {t:'sin', c:'btn-sci', f:"sci('sin')"}, {t:'cos', c:'btn-sci', f:"sci('cos')"}, {t:'tan', c:'btn-sci', f:"sci('tan')"}, {t:'√', c:'btn-sci', f:"sci('sqrt')"}, {t:'π', c:'btn-sci', f:"addChar(Math.PI.toFixed(4))"},
+            {t:'^', c:'btn-sci', f:"addChar('**')"}, {t:'(', c:'btn-sci', f:"addChar('(')"}, {t:')', c:'btn-sci', f:"addChar(')')"}, {t:'log', c:'btn-sci', f:"sci('log')"}, {t:'exp', c:'btn-sci', f:"addChar('*10**')"}
+        ] : [];
+        const normalBtns = [
+            {t:'C', c:'btn-op', f:'clearCalc()'}, {t:'%', c:'btn-op', f:"addChar('%')"}, {t:'÷', c:'btn-op', f:"addChar('/')"}, {t:'⌫', c:'btn-op', f:'deleteLast()'},
+            {t:'7', c:'', f:"addChar('7')"}, {t:'8', c:'', f:"addChar('8')"}, {t:'9', c:'', f:"addChar('9')"}, {t:'×', c:'btn-orange', f:"addChar('*')"},
+            {t:'4', c:'', f:"addChar('4')"}, {t:'5', c:'', f:"addChar('5')"}, {t:'6', c:'', f:"addChar('6')"}, {t:'-', c:'btn-orange', f:"addChar('-')"},
+            {t:'1', c:'', f:"addChar('1')"}, {t:'2', c:'', f:"addChar('2')"}, {t:'3', c:'', f:"addChar('3')"}, {t:'+', c:'btn-orange', f:"addChar('+')"},
+            {t:'0', c:'btn-blue', f:"addChar('0')"}, {t:'.', c:'', f:"addChar('.')"}, {t:'=', c:'btn-orange', f:'calculate()'}
+        ];
+        
+        grid.innerHTML = [...sciBtns, ...normalBtns].map(b => `<button class="${b.c}" onclick="${b.f}">${b.t}</button>`).join('');
+    }
+
+    function addChar(c) { 
+        if (display.value === "Erro") display.value = "";
+        if (!isNaN(c) && display.value.endsWith(')')) display.value += "*";
+        display.value += c; 
+    }
+    
+    function clearCalc() { display.value = ''; }
+    function deleteLast() { display.value = display.value.slice(0, -1); }
+
+    function calculate() { 
+        if (!display.value) return;
+        try { 
+            let expression = display.value.replace(/×/g, '*').replace(/÷/g, '/').replace(/%/g, '/100');
+            let result = eval(expression);
+            if(!isFinite(result) || isNaN(result)) throw new Error("Inválido");
+            let finalResult = Number.isInteger(result) ? result : parseFloat(result.toFixed(6));
+            display.value = finalResult;
+            saveToCalcHistory(finalResult); 
+        } catch (e) { 
+            display.value = "Erro"; 
+            setTimeout(() => display.value = "", 1500);
+        } 
+    }
+
+    function sci(fn) { 
+        try { 
+            let expression = display.value.replace(/×/g, '*').replace(/÷/g, '/');
+            if(expression === "") expression = "0";
+            let v = eval(expression); 
+            let res;
+            if(fn==='sin') res = Math.sin(v); 
+            if(fn==='cos') res = Math.cos(v); 
+            if(fn==='tan') res = Math.tan(v); 
+            if(fn==='sqrt') res = Math.sqrt(v); 
+            if(fn==='log') res = Math.log10(v); 
+            if(isNaN(res)) throw new Error("NaN");
+            display.value = parseFloat(res.toFixed(6)); 
+        } catch { 
+            display.value="Erro"; 
+            setTimeout(() => display.value = "", 1500);
+        } 
+    }
+
+    // --- CONVERSOR ---
+    const unitsMap = {
+        length: { "km": 1000, "m": 1, "cm": 0.01, "mm": 0.001 },
+        volume: { "kL": 1000, "L": 1, "dl": 0.1, "cl": 0.01, "ml": 0.001 }
+    };
+
+    function updateUnits() {
+        const type = document.getElementById('conv-type').value;
+        const from = document.getElementById('unit-from'); 
+        const to = document.getElementById('unit-to');
+        from.innerHTML = to.innerHTML = "";
+        Object.keys(unitsMap[type]).forEach(u => {
+            from.innerHTML += `<option value="${u}">${u}</option>`;
+            to.innerHTML += `<option value="${u}">${u}</option>`;
+        });
+        if(type === 'length') { from.value = 'km'; to.value = 'm'; }
+        else { from.value = 'L'; to.value = 'ml'; }
+        doConversion();
+    }
+
+    function doConversion() {
+        const type = document.getElementById('conv-type').value;
+        const val = parseFloat(document.getElementById('conv-value').value);
+        const uF = document.getElementById('unit-from').value; 
+        const uT = document.getElementById('unit-to').value;
+        const resultEl = document.getElementById('conv-result');
+
+        if (isNaN(val)) { resultEl.innerText = "Insira um valor"; return; }
+        const res = (val * unitsMap[type][uF]) / unitsMap[type][uT];
+        resultEl.innerText = `${val}${uF} = ${res.toLocaleString()}${uT}`;
+    }
+
+    // --- NOTAS ---
+    function sendToNotes(val) { 
+        if(val && val!=="Erro" && val!=="Insira um valor" && val!=="Resultado...") { 
+            notesArea.value += `• ${val}\n`; 
+            autoSaveDraft(); 
+        } 
+    }
+    
+    function toggleModal(id) { 
+        let m = document.getElementById(id); 
+        let current = m.style.display;
+        document.querySelectorAll('.modal-notes, #calc-history-modal').forEach(x => { if(x.id !== id) x.style.display = 'none'; });
+        m.style.display = current === 'none' ? 'block' : 'none'; 
+        if(id==='history-modal') loadHistory(); 
+        if(id==='calc-history-modal') loadCalcHistory(); 
+    }
+
+    function saveCurrentNote(alertMe) {
+        const notes = JSON.parse(localStorage.getItem('savedNotes') || '{}');
+        const title = titleInput.value.trim() || "Nota " + new Date().toLocaleTimeString();
+        notes[title] = notesArea.value;
+        localStorage.setItem('savedNotes', JSON.stringify(notes));
+        if(alertMe) alert("Guardado!");
+    }
+
+    function deleteNote() {
+        if(!titleInput.value) return;
+        if(confirm("Apagar esta nota permanentemente?")) {
+            const notes = JSON.parse(localStorage.getItem('savedNotes') || '{}');
+            delete notes[titleInput.value];
+            localStorage.setItem('savedNotes', JSON.stringify(notes));
+            titleInput.value = ""; notesArea.value = "";
+            localStorage.removeItem('draft_note'); localStorage.removeItem('draft_title');
+        }
+    }
+
+    // NOVA FUNÇÃO: Limpar Texto da Nota Atual
+    function clearCurrentNoteText() {
+        if(notesArea.value.trim() === "") return;
+        if(confirm("Tens a certeza que queres limpar todo o texto da nota atual?")) {
+            notesArea.value = "";
+            autoSaveDraft();
+        }
+    }
+
+    function loadHistory() {
+        const notes = JSON.parse(localStorage.getItem('savedNotes') || '{}');
+        const list = document.getElementById('history-list');
+        list.innerHTML = Object.keys(notes).reverse().map(t => `<div style="padding:12px 5px; border-bottom:1px solid var(--border-color); cursor:pointer; color:var(--text-color)" onclick="selectNote('${t}')">${t}</div>`).join('') || "<span style='color:var(--text-secondary)'>Vazio</span>";
+    }
+
+    function selectNote(t) { 
+        const notes = JSON.parse(localStorage.getItem('savedNotes')); 
+        titleInput.value = t; 
+        notesArea.value = notes[t]; 
+        toggleModal('history-modal'); 
+        autoSaveDraft(); 
+    }
+
+    function createNewNote() { 
+        saveCurrentNote(false);
+        titleInput.value = ""; 
+        notesArea.value = ""; 
+        autoSaveDraft(); 
+    }
+
+    function copyToClipboard() { 
+        navigator.clipboard.writeText(notesArea.value).then(() => alert("Copiado!")); 
+    }
+
+    // --- EXTRAS ---
+    function toggleTheme() {
+        const body = document.body;
+        const theme = body.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+        body.setAttribute('data-theme', theme);
+        document.querySelector('.theme-btn').innerText = theme === 'light' ? '🌙' : '☀️';
+        localStorage.setItem('preferred-theme', theme);
+    }
+
+    function saveToCalcHistory(entry) { 
+        let h = JSON.parse(localStorage.getItem('calcHistory') || '[]'); 
+        h.unshift(entry); 
+        localStorage.setItem('calcHistory', JSON.stringify(h.slice(0, 10))); 
+    }
+
+    function loadCalcHistory() { 
+        let h = JSON.parse(localStorage.getItem('calcHistory') || '[]'); 
+        document.getElementById('calc-history-list').innerHTML = h.map(i => `<div style="padding:8px 5px; border-bottom:1px solid var(--border-color); cursor:pointer; color:var(--text-color)" onclick="addChar('${i}'); toggleModal('calc-history-modal')">${i}</div>`).join('') || "<span style='color:var(--text-secondary)'>Vazio</span>"; 
+    }
+
+    function clearCalcHistory() { localStorage.setItem('calcHistory', '[]'); loadCalcHistory(); }
+    
+    function autoSaveDraft() { 
+        localStorage.setItem('draft_note', notesArea.value); 
+        localStorage.setItem('draft_title', titleInput.value); 
+    }
+
+    // Init
+    renderButtons();
+    updateUnits();
+    window.onload = () => {
+        const theme = localStorage.getItem('preferred-theme') || 'light';
+        if(theme === 'dark') toggleTheme();
+        if(localStorage.getItem('draft_note')) { 
+            notesArea.value = localStorage.getItem('draft_note'); 
+            titleInput.value = localStorage.getItem('draft_title'); 
+        }
+        // Fechar modais ao clicar fora
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.modal-notes') && !e.target.closest('#calc-history-modal') && !e.target.closest('button[onclick^="toggleModal"]')) {
+                document.querySelectorAll('.modal-notes, #calc-history-modal').forEach(m => m.style.display = 'none');
+            }
+        });
+    };
+    notesArea.oninput = titleInput.oninput = autoSaveDraft;
+</script>
+</body>
+</html>
