@@ -24,7 +24,7 @@
     body {
         margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
         background: var(--bg); color: var(--text); 
-        /* Usar dvh para evitar problemas com barras do navegador */
+        /* Altura dinâmica para ignorar barras do browser */
         height: 100dvh; 
         overflow: hidden;
         display: flex; flex-direction: column;
@@ -45,7 +45,6 @@
     /* --- DOCK --- */
     .dock-bar {
         position: fixed; 
-        /* Ajuste para respeitar a safe area em baixo também */
         bottom: calc(30px + env(safe-area-inset-bottom)); 
         left: 20px; right: 20px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
@@ -66,7 +65,6 @@
     .overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
         opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        /* Garante que o overlay ocupa tudo mesmo com barras do browser */
         height: 100dvh; 
     }
     .overlay.active { opacity: 1; pointer-events: auto; }
@@ -77,9 +75,9 @@
         transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
         display: flex; flex-direction: column; 
         
-        /* CORREÇÃO PRINCIPAL: */
-        max-height: 90dvh; /* Nunca ocupa mais que 90% da altura visível real */
-        padding-bottom: env(safe-area-inset-bottom); /* Espaço para a barra do iPhone */
+        /* Limites e Safe Area */
+        max-height: 90dvh; 
+        padding-bottom: env(safe-area-inset-bottom);
         
         backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
         border-top: 1px solid rgba(255,255,255,0.1);
@@ -91,12 +89,9 @@
 
     /* --- CALCULADORA --- */
     .calc-container { 
-        padding: 0 20px 20px 20px; /* Padding bottom reduzido pois já temos o safe-area na sheet */
+        padding: 0 20px 20px 20px; 
         display: flex; flex-direction: column; align-items: center; 
-        
-        /* Permite scroll se o ecrã for muito pequeno (iPhone SE, etc) */
-        flex: 1;
-        overflow-y: auto;
+        flex: 1; overflow-y: auto;
     }
     
     .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; flex-shrink: 0; }
@@ -105,13 +100,10 @@
         background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0;
     }
     
-    /* Histórico */
     .history-dropdown {
         width: 100%; background: rgba(128,128,128,0.1); border-radius: 15px;
         max-height: 0; overflow-y: auto; transition: max-height 0.3s ease;
-        margin-bottom: 10px;
-        overscroll-behavior: contain;
-        flex-shrink: 0;
+        margin-bottom: 10px; overscroll-behavior: contain; flex-shrink: 0;
     }
     .history-dropdown.open { max-height: 180px; border: 1px solid var(--border); }
     
@@ -128,7 +120,6 @@
         font-size: 1.1rem; color: var(--text);
     }
 
-    /* Tools & Grid */
     .calc-tools { 
         width: 100%; display: flex; justify-content: space-between; 
         margin-bottom: 15px; padding: 0 5px; flex-shrink: 0; 
@@ -161,9 +152,7 @@
     /* --- NOTAS --- */
     .list-container { 
         padding: 0 20px 20px 20px; 
-        overflow-y: auto; 
-        flex: 1; /* Ocupa o espaço disponível sem forçar altura fixa */
-        width: 100%; 
+        overflow-y: auto; flex: 1; width: 100%; 
     }
     .note-card {
         background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px;
@@ -270,7 +259,6 @@
             <div class="handle-area"><div class="handle-bar"></div></div>
             <div class="calc-container">
                 <h2 style="margin:0 0 20px 0">Conversor</h2>
-                
                 <div style="width:100%;margin-bottom:20px">
                     <select id="convType" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem">
                         <option value="distance">Distância</option>
@@ -279,22 +267,18 @@
                         <option value="temperature">Temperatura</option>
                     </select>
                 </div>
-
                 <div style="width:100%;margin-bottom:15px">
                     <input id="convInput" type="number" placeholder="Valor" style="width:100%;padding:15px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1.2rem">
                 </div>
-
                 <div style="width:100%;display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:20px">
                     <select id="convFrom" style="padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem"></select>
                     <span style="font-size:1.5rem">→</span>
                     <select id="convTo" style="padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem"></select>
                 </div>
-
                 <div style="width:100%;padding:20px;background:rgba(0,122,255,0.1);border-radius:15px;text-align:center;margin-bottom:15px">
                     <div style="font-size:0.9rem;color:var(--text);opacity:0.7;margin-bottom:5px">Resultado</div>
                     <div id="convResult" style="font-size:2rem;font-weight:600;color:var(--accent)">0</div>
                 </div>
-
                 <button onclick="insertConversion()" style="width:100%;padding:15px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-size:1.1rem;font-weight:600">Inserir na Nota</button>
             </div>
         </div>
@@ -312,27 +296,17 @@
     let calcHistory = [];
 
     // --- CÁLCULO AUTOMÁTICO NA NOTA ---
-    // Deteta quando o utilizador escreve '='
     noteBody.addEventListener('input', (e) => {
         if (e.data === '=' || e.target.value.endsWith('=')) {
             const val = e.target.value;
-            // Regex para capturar conta antes do = (ex: 50*2=)
-            // Aceita números, ., +, -, *, /, (, )
             const match = val.match(/(?:^|[\n\s])([0-9.,+\-*/()]+)=$/);
-            
             if (match) {
-                const expression = match[1].replace(/,/g, '.'); // Troca vírgula por ponto para JS
+                const expression = match[1].replace(/,/g, '.');
                 try {
-                    // Avalia a conta
                     let result = eval(expression);
-                    // Arredonda se necessário
                     if(!Number.isInteger(result)) result = parseFloat(result.toFixed(2));
-                    
-                    // Adiciona o resultado
                     noteBody.value = val + result;
-                } catch (err) {
-                    // Se a conta for inválida, não faz nada
-                }
+                } catch (err) {}
             }
         }
     });
@@ -358,8 +332,6 @@
         try {
             let expr = display.value.replace(/×/g, '*').replace(/÷/g, '/');
             let result;
-            
-            // Lógica de Percentagem
             const percentPattern = /([0-9.]+)[\+\-]([0-9.]+)%/;
             if (expr.includes('%')) {
                 if (percentPattern.test(expr)) {
@@ -373,7 +345,6 @@
             } else {
                 result = eval(expr);
             }
-            
             if (!Number.isInteger(result)) result = parseFloat(result.toFixed(4));
             addToHistory(display.value, result);
             display.value = result;
@@ -398,14 +369,11 @@
     function renderHistory() {
         historyList.innerHTML = calcHistory.map(h => `<div class="hist-entry">${h}</div>`).join('');
     }
-    
-    // Botão Limpar Histórico
     document.getElementById('btnClearHist').onclick = (e) => {
-        e.stopPropagation(); // Não fechar o dropdown
+        e.stopPropagation();
         calcHistory = [];
         renderHistory();
     };
-
     document.getElementById('btnShowHist').onclick = (e) => {
         e.stopPropagation();
         historyDropdown.classList.toggle('open');
@@ -451,49 +419,81 @@
         }
     };
 
-    // --- MODAL & SWIPE COM CORREÇÃO ---
+    // --- SISTEMA DE MODAL & SWIPE (CORRIGIDO) ---
+    
     function openModal(id) { 
-        document.getElementById(id).classList.add('active'); 
+        const overlay = document.getElementById(id);
+        const sheet = overlay.querySelector('.sheet');
+        
+        // CORREÇÃO CRÍTICA: Limpar estilos manuais anteriores
+        sheet.style.transform = '';
+        sheet.style.transition = ''; 
+        
+        overlay.classList.add('active'); 
         if(id==='modalList') renderNotes(); 
         if(id==='modalConverter') initConverter(); 
     }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function closeModal(id) { 
+        const overlay = document.getElementById(id);
+        const sheet = overlay.querySelector('.sheet');
+        overlay.classList.remove('active');
+        
+        // Espera animação acabar e limpa tudo
+        setTimeout(() => {
+             sheet.style.transform = '';
+             sheet.style.transition = '';
+        }, 350);
+    }
     
     document.getElementById('btnOpenCalc').onclick = () => openModal('modalCalc');
     document.getElementById('btnList').onclick = () => openModal('modalList');
     document.getElementById('btnConverter').onclick = () => openModal('modalConverter');
 
     document.querySelectorAll('.overlay').forEach(overlay => {
+        // Fechar ao clicar fora
         overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(overlay.id); });
         
         const sheet = overlay.querySelector('.sheet');
         let startY = 0;
 
+        // Início do toque
         sheet.addEventListener('touchstart', (e) => {
-            // Se tocar no histórico ou lista de notas, não iniciar swipe para fechar
-            // a não ser que o scroll esteja no topo absoluto
             const isScrollable = e.target.closest('.history-dropdown, .list-container, .calc-container');
+            // Se estivermos dentro de algo com scroll, e não estivermos no topo, não arrasta a sheet
             if (isScrollable && isScrollable.scrollTop > 0) return;
             
-            // Verifica se está no topo visual
-            if(sheet.scrollTop === 0) startY = e.touches[0].clientY;
+            // Só começa o arrasto se a sheet estiver no topo (0 scroll)
+            if(sheet.scrollTop <= 0) startY = e.touches[0].clientY;
         }, {passive: true});
 
+        // Durante o arrasto
         sheet.addEventListener('touchmove', (e) => {
             if(startY === 0) return;
             const diff = e.touches[0].clientY - startY;
             if(diff > 0) { 
                 if(e.cancelable) e.preventDefault(); 
                 sheet.style.transform = `translateY(${diff}px)`; 
-                sheet.style.transition = 'none';
+                sheet.style.transition = 'none'; // Remove transição para arrastar fluidamente
             }
         }, {passive: false});
 
+        // Fim do arrasto
         sheet.addEventListener('touchend', (e) => {
             if(startY === 0) return;
+            const diff = e.changedTouches[0].clientY - startY;
+
+            // Restaura a animação suave
             sheet.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
-            if((e.changedTouches[0].clientY - startY) > 120) closeModal(overlay.id);
-            else sheet.style.transform = '';
+
+            if(diff > 120) {
+                // Se arrastou muito para baixo -> Fecha
+                sheet.style.transform = ''; // Limpa o estilo inline para o CSS assumir
+                closeModal(overlay.id);
+            } else {
+                // Se arrastou pouco -> Volta para cima
+                sheet.style.transform = '';
+            }
             startY = 0;
         });
     });
@@ -544,7 +544,6 @@
         const val = parseFloat(document.getElementById('convInput').value) || 0;
         const from = document.getElementById('convFrom').value;
         const to = document.getElementById('convTo').value;
-        
         let result;
         if (type === 'temperature') {
             result = conversions.temperature.convert(val, from, to);
@@ -552,7 +551,6 @@
             const base = val * conversions[type].toBase[from];
             result = base / conversions[type].toBase[to];
         }
-        
         document.getElementById('convResult').textContent = result.toFixed(4);
     }
 
