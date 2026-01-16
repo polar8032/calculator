@@ -8,7 +8,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 <title>Pro Notes</title>
 
 <style>
-/* ================= VARIÁVEIS ================= */
 :root{
 --bg-main:#f2f2f7;
 --bg-section:#ffffff;
@@ -34,7 +33,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 --orange:#ff9f0a;
 }
 
-/* ================= BASE ================= */
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto}
 body{
 margin:0;
@@ -107,7 +105,7 @@ touch-action:manipulation;
 position:fixed;
 inset:0;
 background:rgba(0,0,0,.4);
-display:none;
+display:none; /* default hidden */
 align-items:flex-end;
 z-index:100;
 }
@@ -168,10 +166,8 @@ font-weight:600;
 font-size:1rem;
 }
 
-/* ================= DESKTOP ================= */
-@media(min-width:769px){
-.calc-modal{display:none!important}
-}
+/* Remova uso de !important para permitir mostrar modal via JS. */
+/* Se quiser esconder a calculadora em desktop, trate isso via JS ou outra classe. */
 </style>
 </head>
 
@@ -179,79 +175,129 @@ font-size:1rem;
 
 <!-- ================= NOTAS ================= -->
 <div class="section-notes">
-<input id="note-title" placeholder="Título da nota">
-<textarea id="notes" placeholder="Começa a escrever..."></textarea>
+  <input id="note-title" placeholder="Título da nota">
+  <textarea id="notes" placeholder="Começa a escrever..."></textarea>
 </div>
 
 <!-- ================= BARRA ================= -->
 <div class="floating-actions">
-<button class="btn-mini" style="background:var(--neutral)" onclick="copy()">📋</button>
-<button class="btn-mini" style="background:var(--orange)" onclick="clearText()">🧹</button>
-<button class="btn-mini" style="background:var(--danger)" onclick="deleteNote()">🗑</button>
-<button class="btn-mini" style="background:var(--success)" onclick="save()">✓</button>
-<button class="btn-mini" style="background:var(--accent)" onclick="openCalc()">🧮</button>
+  <button class="btn-mini" style="background:var(--neutral)" onclick="copy()">📋</button>
+  <button class="btn-mini" style="background:var(--orange)" onclick="clearText()">🧹</button>
+  <button class="btn-mini" style="background:var(--danger)" onclick="deleteNote()">🗑</button>
+  <button class="btn-mini" style="background:var(--success)" onclick="save()">✓</button>
+  <button class="btn-mini" style="background:var(--accent)" onclick="openCalc()">🧮</button>
 </div>
 
 <!-- ================= CALCULADORA ================= -->
 <div class="calc-modal" id="calcModal" onclick="closeCalc(event)">
-<div class="calc-sheet">
-<input id="calc-display" readonly>
+  <div class="calc-sheet" role="dialog" aria-modal="true" aria-label="Calculadora">
+    <input id="calc-display" readonly>
 
-<div class="grid" id="calc-grid"></div>
+    <div class="grid" id="calc-grid"></div>
 
-<button class="send-btn" onclick="sendCalc()">Enviar para Notas</button>
-</div>
+    <button class="send-btn" onclick="sendCalc()">Enviar para Notas</button>
+  </div>
 </div>
 
 <script>
-const display=document.getElementById("calc-display");
-const notes=document.getElementById("notes");
-const modal=document.getElementById("calcModal");
+const display = document.getElementById("calc-display");
+const notes = document.getElementById("notes");
+const modal = document.getElementById("calcModal");
 
 const buttons=[
-"C","%","÷","⌫",
-"7","8","9","×",
-"4","5","6","-",
-"1","2","3","+",
-"0",".","="
+  "C","%","÷","⌫",
+  "7","8","9","×",
+  "4","5","6","-",
+  "1","2","3","+",
+  "0",".","="
 ];
 
 function renderCalc(){
-document.getElementById("calc-grid").innerHTML=
-buttons.map(b=>{
-let cls="";
-if("+-×=".includes(b))cls="btn-orange";
-if("C%⌫÷".includes(b))cls="btn-op";
-if(b==="0")cls="btn-blue";
-return `<button class="${cls}" onpointerdown="press('${b}')">${b}</button>`;
-}).join("");
+  document.getElementById("calc-grid").innerHTML =
+    buttons.map(b=>{
+      let cls = "";
+      if ("+-×=".includes(b)) cls = "btn-orange";
+      if ("C%⌫÷".includes(b)) cls = "btn-op";
+      if (b === "0") cls = "btn-blue";
+      // uso onclick (mais compatível). Pode trocar para onpointerdown se preferir.
+      return `<button class="${cls}" onclick="press('${b}')">${b}</button>`;
+    }).join("");
+}
+
+function safeEval(expr){
+  // substitui todos os × e ÷ por * e / e avalia
+  const safe = expr.replace(/×/g,'*').replace(/÷/g,'/');
+  // evitar terminar com operador
+  if (/[+\-*/.]$/.test(safe)) return null;
+  try {
+    // eslint-disable-next-line no-eval
+    const res = eval(safe);
+    // formato simples para evitar longas casas decimais
+    if (typeof res === 'number' && !Number.isInteger(res)) {
+      return parseFloat(res.toFixed(8)).toString();
+    }
+    return String(res);
+  } catch (e) {
+    return null;
+  }
 }
 
 function press(v){
-if(v==="C"){display.value="";return;}
-if(v==="⌫"){display.value=display.value.slice(0,-1);return;}
-if(v==="="){
-try{display.value=eval(display.value.replace("×","*").replace("÷","/"))}
-catch{display.value="Erro"}
-return;
-}
-display.value+=v;
+  if (v === "C"){ display.value = ""; return; }
+  if (v === "⌫"){ display.value = display.value.slice(0,-1); return; }
+  if (v === "%"){
+    // se houver expressão avalia e divide por 100
+    const val = safeEval(display.value);
+    if (val !== null) {
+      display.value = String(Number(val) / 100);
+    } else {
+      display.value = "Erro";
+    }
+    return;
+  }
+  if (v === "="){
+    const result = safeEval(display.value);
+    display.value = result === null ? "Erro" : result;
+    return;
+  }
+  // evitar múltiplos operadores seguidos (ex: "++")
+  const last = display.value.slice(-1);
+  if ("+-×÷".includes(v) && "+-×÷".includes(last)) {
+    // substitui operador anterior
+    display.value = display.value.slice(0,-1) + v;
+    return;
+  }
+  display.value += v;
 }
 
-function openCalc(){modal.style.display="flex"}
-function closeCalc(e){if(e.target===modal)modal.style.display="none"}
+function openCalc(){
+  modal.style.display = "flex";
+  // opcional: focar num botão ou no display
+}
+
+function closeCalc(e){
+  if (e.target === modal) modal.style.display = "none";
+}
 
 function sendCalc(){
-if(display.value && display.value!=="Erro"){
-notes.value+=`• ${display.value}\n`;
-}
-modal.style.display="none";
+  if (!display.value || display.value === "Erro") {
+    modal.style.display = "none";
+    return;
+  }
+  // se o display contém expressão (não apenas número), avalia antes de enviar
+  const evaluated = safeEval(display.value);
+  const toSend = evaluated === null ? display.value : evaluated;
+  notes.value += `• ${toSend}\n`;
+  modal.style.display = "none";
+  notes.focus();
 }
 
-function copy(){navigator.clipboard.writeText(notes.value)}
-function clearText(){notes.value=""}
-function save(){alert("Guardado")}
-function deleteNote(){notes.value="";document.getElementById("note-title").value=""}
+function copy(){
+  navigator.clipboard.writeText(notes.value).catch(()=>{ alert('Não foi possível copiar'); });
+}
+function clearText(){ notes.value = ""; }
+function save(){ alert("Guardado"); }
+function deleteNote(){ notes.value=""; document.getElementById("note-title").value=""; }
 
 renderCalc();
 </script>
