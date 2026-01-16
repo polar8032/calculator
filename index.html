@@ -6,7 +6,6 @@
 <title>Pro Notes & Calc Ultimate</title>
 
 <script>
-    // Verifica a memória imediatamente. Se não houver nada, usa 'light'.
     const savedTheme = localStorage.getItem('appTheme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
 </script>
@@ -19,7 +18,6 @@
         --btn-grey: #e5e5ea; --btn-text: #000;
         --border: #c6c6c8; --blur: blur(20px);
     }
-    /* O seletor agora procura o atributo na tag HTML */
     [data-theme="dark"] {
         --bg: #000000; --card: #1c1c1e; --text: #ffffff;
         --sheet-bg: rgba(30, 30, 30, 0.98);
@@ -117,7 +115,7 @@
         position: absolute; bottom: 0; left: 0; right: 0;
         background: var(--sheet-bg); border-radius: 30px 30px 0 0;
         transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-        display: flex; flex-direction: column; max-height: 90dvh; 
+        display: flex; flex-direction: column; max-height: 95dvh; /* Aumentado ligeiramente */
         padding-bottom: env(safe-area-inset-bottom);
         backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
         border-top: 1px solid rgba(255,255,255,0.1);
@@ -127,24 +125,16 @@
     .handle-area { width: 100%; padding: 15px 0; display: flex; justify-content: center; flex-shrink: 0; }
     .handle-bar { width: 40px; height: 5px; background: var(--border); border-radius: 10px; opacity: 0.8; }
 
-    /* --- CALCULADORA --- */
+    /* --- CALCULADORA e CONVERSOR --- */
     .calc-container { padding: 0 20px 20px 20px; display: flex; flex-direction: column; align-items: center; flex: 1; overflow-y: auto; }
     .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; flex-shrink: 0; }
-    #calcResult {
-        width: 100%; text-align: right; font-size: 3.5rem; border: none;
-        background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0;
-    }
-    .history-dropdown {
-        width: 100%; background: rgba(128,128,128,0.1); border-radius: 15px;
-        max-height: 0; overflow-y: auto; transition: max-height 0.3s ease;
-        margin-bottom: 10px; overscroll-behavior: contain; flex-shrink: 0;
-    }
+    #calcResult { width: 100%; text-align: right; font-size: 3.5rem; border: none; background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0; }
+    .history-dropdown { width: 100%; background: rgba(128,128,128,0.1); border-radius: 15px; max-height: 0; overflow-y: auto; transition: max-height 0.3s ease; margin-bottom: 10px; overscroll-behavior: contain; flex-shrink: 0; }
     .history-dropdown.open { max-height: 180px; border: 1px solid var(--border); }
     .hist-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(0,0,0,0.03); border-bottom: 1px solid var(--border); position: sticky; top: 0; }
     .btn-clear-hist { font-size: 0.8rem; color: var(--red); background: none; border: none; font-weight: 600; }
     .hist-list-content { padding: 5px; }
     .hist-entry { text-align: right; padding: 8px; border-bottom: 1px solid rgba(128,128,128,0.1); font-size: 1.1rem; color: var(--text); }
-
     .calc-tools { width: 100%; display: flex; justify-content: space-between; margin-bottom: 15px; padding: 0 5px; flex-shrink: 0; }
     .tool-btn { background: none; border: none; font-weight: 600; font-size: 0.95rem; color: var(--accent); padding: 5px; }
     .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; flex-shrink: 0; }
@@ -156,8 +146,14 @@
     .key-btn.orange { background: var(--orange); color: #fff; }
     .key-btn.wide { grid-column: span 2; width: 100%; max-width: none; aspect-ratio: auto; height: 75px; border-radius: 40px; justify-content: flex-start; padding-left: 30px; }
 
-    /* --- NOTAS --- */
-    .list-container { padding: 0 20px 20px 20px; overflow-y: auto; flex: 1; width: 100%; }
+    /* --- NOTAS (FORÇADO PARA OCUPAR ALTURA) --- */
+    .list-container { 
+        padding: 0 20px 20px 20px; 
+        overflow-y: auto; 
+        flex: 1; 
+        width: 100%; 
+        height: 85dvh; /* Força 85% do ecrã sempre */
+    }
     .note-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); }
     .note-card-text { flex: 1; overflow: hidden; }
     .btn-trash { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; width: 35px; height: 35px; border-radius: 50%; margin-left: 10px; }
@@ -229,7 +225,10 @@
     <div class="overlay" id="modalList">
         <div class="sheet">
             <div class="handle-area"><div class="handle-bar"></div></div>
-            <div class="list-container"><h2 style="margin-top:0">Notas Guardadas</h2><div id="notesContainer"></div></div>
+            <div class="list-container">
+                <h2 style="margin:0 0 20px 0">Notas Guardadas</h2>
+                <div id="notesContainer"></div>
+            </div>
         </div>
     </div>
 
@@ -262,14 +261,10 @@
     let calcHistory = [];
     let pendingCalculation = null;
 
-    // --- NOVA LÓGICA DE TEMA (BOTÃO) ---
-    // A inicialização já foi feita no <head>
+    // --- NOVA LÓGICA DE TEMA ---
     document.getElementById('btnTheme').onclick = () => {
-        // Agora verificamos o atributo no elemento HTML, não no body
         const current = document.documentElement.getAttribute('data-theme') || 'light';
         const newTheme = current === 'light' ? 'dark' : 'light';
-        
-        // Aplica e Salva
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('appTheme', newTheme);
     };
@@ -374,7 +369,7 @@
     // --- NOTAS ---
     function renderNotes() {
         const c = document.getElementById('notesContainer');
-        c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888">Vazio</p>';
+        c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888;margin-top:20px">Ainda não tens notas guardadas</p>';
         savedNotes.forEach(n => {
             const div = document.createElement('div');
             div.className = 'note-card';
