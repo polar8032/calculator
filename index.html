@@ -2,203 +2,423 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Notes iOS</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>iOS Pro Notes & Calc</title>
 <style>
-:root{
---bg:#f2f2f7;--sheet:#fff;--text:#111;
---accent:#007aff;--orange:#ff9500;
---border:#d1d1d6;--grey:#e5e5ea;
---blur:blur(12px);
-}
-[data-theme="dark"]{
---bg:#000;--sheet:#1c1c1e;--text:#fff;
---grey:#2c2c2e;--border:#3a3a3c;
-}
-*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont}
-body{margin:0;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+    :root {
+        --bg: #f2f2f7;
+        --card: #ffffff;
+        --text: #000000;
+        --text-sec: #8e8e93;
+        --accent: #007aff;
+        --orange: #ff9500;
+        --destruct: #ff3b30;
+        --grey-btn: #e5e5ea;
+        --grey-btn-text: #000;
+        --border: #c6c6c8;
+        --shadow: 0 4px 12px rgba(0,0,0,0.1);
+        --modal-bg: rgba(255, 255, 255, 0.85);
+        --blur: blur(20px);
+    }
 
-/* Notes */
-.section-notes{height:100vh;padding:16px;display:flex;flex-direction:column}
-textarea,input{border:none;background:none;color:var(--text);outline:none}
-textarea{flex:1;font-size:1.05rem}
+    [data-theme="dark"] {
+        --bg: #000000;
+        --card: #1c1c1e;
+        --text: #ffffff;
+        --text-sec: #98989f;
+        --grey-btn: #3a3a3c;
+        --grey-btn-text: #fff;
+        --border: #38383a;
+        --modal-bg: rgba(30, 30, 30, 0.85);
+    }
 
-/* Bottom Bar */
-.floating-actions{
-position:fixed;bottom:0;left:0;right:0;
-display:flex;justify-content:space-around;
-padding:10px;background:var(--sheet);
-border-top:1px solid var(--border)
-}
-.btn-mini{width:48px;height:48px;border-radius:50%;border:none;
-background:var(--accent);color:#fff;font-size:1.2rem}
+    * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    body {
+        margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg); color: var(--text);
+        height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+        transition: background 0.3s;
+    }
 
-/* Calculator Modal */
-.calc-modal{
-position:fixed;inset:0;background:rgba(0,0,0,.35);
-backdrop-filter:var(--blur);
-display:flex;align-items:flex-end;
-opacity:0;pointer-events:none;
-transition:.3s;
-}
-.calc-modal.show{opacity:1;pointer-events:auto}
+    /* --- Editor Area --- */
+    .editor-container {
+        flex: 1; display: flex; flex-direction: column; padding: 20px 20px 100px 20px;
+    }
+    
+    .date-label {
+        text-align: center; color: var(--text-sec); font-size: 0.85rem; margin-bottom: 15px;
+    }
 
-.calc-sheet{
-width:100%;background:var(--sheet);
-border-radius:20px 20px 0 0;
-padding:12px;
-transform:translateY(100%);
-transition:transform .35s cubic-bezier(.22,.61,.36,1);
-}
-.calc-modal.show .calc-sheet{transform:translateY(0)}
+    input#title {
+        background: transparent; border: none; font-size: 1.8rem; font-weight: 700;
+        color: var(--text); outline: none; margin-bottom: 10px; width: 100%;
+    }
 
-.calc-header{display:flex;justify-content:space-between;align-items:center}
-#calc-display{width:100%;height:60px;font-size:2rem;text-align:right}
+    textarea#notes {
+        flex: 1; background: transparent; border: none; font-size: 1.1rem; line-height: 1.5;
+        color: var(--text); outline: none; resize: none;
+    }
 
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.grid button{
-height:56px;border-radius:50%;
-border:none;background:var(--grey);font-size:1.1rem
-}
-.op{color:var(--accent)}
-.orange{background:var(--orange);color:#fff}
-.wide{grid-column:span 2;border-radius:28px;background:var(--accent);color:#fff}
+    /* --- Floating Dock --- */
+    .dock {
+        position: fixed; bottom: 20px; left: 20px; right: 20px;
+        background: var(--modal-bg); backdrop-filter: var(--blur);
+        -webkit-backdrop-filter: var(--blur);
+        padding: 12px; border-radius: 25px;
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: var(--shadow); border: 1px solid var(--border);
+        z-index: 100;
+    }
 
-/* History */
-.history{
-max-height:0;overflow:hidden;
-transition:max-height .3s ease;
-}
-.history.show{max-height:160px}
-.history div{
-padding:6px;font-size:.95rem;
-border-bottom:1px solid var(--border);
-cursor:pointer
-}
+    .dock-btn {
+        width: 48px; height: 48px; border-radius: 50%; border: none;
+        background: transparent; color: var(--accent); font-size: 1.4rem;
+        display: flex; align-items: center; justify-content: center;
+        transition: transform 0.1s, background 0.2s; cursor: pointer;
+    }
+    .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.1); }
+    .dock-btn.primary { background: var(--accent); color: white; box-shadow: 0 4px 10px rgba(0,122,255,0.3); }
+
+    /* --- Modal Sheets (Calc & Saved) --- */
+    .modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+        opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 200;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .sheet {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        background: var(--modal-bg); backdrop-filter: var(--blur);
+        -webkit-backdrop-filter: var(--blur);
+        border-radius: 25px 25px 0 0;
+        transform: translateY(110%);
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex; flex-direction: column;
+        max-height: 90vh; border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .modal-overlay.open .sheet { transform: translateY(0); }
+    .sheet.dragging { transition: none; }
+
+    .drag-handle {
+        width: 100%; padding: 15px 0; display: flex; justify-content: center; cursor: grab;
+    }
+    .drag-pill {
+        width: 40px; height: 5px; background: var(--border); border-radius: 10px;
+    }
+
+    /* --- Calculator Specifics --- */
+    .calc-content { padding: 0 15px 30px 15px; }
+    .calc-display {
+        width: 100%; text-align: right; font-size: 3.5rem; border: none;
+        background: transparent; color: var(--text); font-weight: 300; margin-bottom: 10px;
+        pointer-events: none;
+    }
+    .calc-controls {
+        display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center;
+    }
+    .mode-toggle {
+        font-size: 0.9rem; color: var(--accent); background: none; border: none; font-weight: 600;
+    }
+
+    .keypad {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    }
+    .key {
+        height: 65px; border-radius: 50%; border: none; font-size: 1.5rem;
+        background: var(--grey-btn); color: var(--grey-btn-text);
+        display: flex; align-items: center; justify-content: center;
+        transition: filter 0.2s;
+    }
+    .key:active { filter: brightness(0.8); }
+    .key.orange { background: var(--orange); color: white; }
+    .key.dark-grey { background: var(--border); } /* Operações topo */
+    .key.wide { grid-column: span 2; border-radius: 40px; text-align: left; padding-left: 28px; justify-content: flex-start; }
+    
+    /* Scientific Rows (Hidden by default) */
+    .sci-row { display: none; grid-column: span 4; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+    .sci-row.show { display: grid; }
+    .key.sci { height: 45px; font-size: 1rem; background: var(--bg); border: 1px solid var(--border); }
+
+    /* --- Saved Notes List --- */
+    .notes-list-content { padding: 0 20px 40px 20px; overflow-y: auto; max-height: 70vh; }
+    .list-header { font-size: 1.5rem; font-weight: 700; margin-bottom: 15px; }
+    .note-item {
+        background: var(--card); padding: 15px; border-radius: 12px;
+        margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .note-info { flex: 1; overflow: hidden; }
+    .note-title { font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .note-preview { font-size: 0.85rem; color: var(--text-sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn-delete {
+        background: #ff3b3020; color: var(--destruct); border: none;
+        width: 36px; height: 36px; border-radius: 50%; margin-left: 10px;
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Utility */
+    .hidden { display: none; }
 </style>
 </head>
-
 <body data-theme="light">
 
-<div class="section-notes">
-<input placeholder="Título">
-<textarea id="notes" placeholder="Escreve..."></textarea>
-</div>
+    <div class="editor-container">
+        <div class="date-label" id="dateLabel">Hoje, 12:00</div>
+        <input type="text" id="title" placeholder="Título">
+        <textarea id="notes" placeholder="Começa a escrever..."></textarea>
+    </div>
 
-<div class="floating-actions">
-<button id="dark">🌙</button>
-<button id="openCalc">🧮</button>
-</div>
+    <div class="dock">
+        <button class="dock-btn" id="btnTheme" title="Tema">◑</button>
+        <button class="dock-btn" id="btnClear" title="Limpar">✕</button>
+        <button class="dock-btn primary" id="btnCalc" title="Calculadora">🧮</button>
+        <button class="dock-btn" id="btnSave" title="Guardar Nota">💾</button>
+        <button class="dock-btn" id="btnList" title="Minhas Notas">☰</button>
+    </div>
 
-<div class="calc-modal" id="modal">
-<div class="calc-sheet" id="sheet">
+    <div class="modal-overlay" id="calcModal">
+        <div class="sheet" id="calcSheet">
+            <div class="drag-handle"><div class="drag-pill"></div></div>
+            <div class="calc-content">
+                <input class="calc-display" id="display" readonly value="0">
+                
+                <div class="calc-controls">
+                    <button class="mode-toggle" id="toggleSci">Mostrar Científica</button>
+                    <button class="mode-toggle" id="pasteToNote" style="color:var(--orange)">Inserir na Nota</button>
+                </div>
 
-<div class="calc-header">
-<strong>Calculadora</strong>
-<div>
-<button id="historyBtn">🕘</button>
-<button id="close">✕</button>
-</div>
-</div>
+                <div class="sci-row" id="sciRow">
+                    <button class="key sci" onclick="math('sin')">sin</button>
+                    <button class="key sci" onclick="math('cos')">cos</button>
+                    <button class="key sci" onclick="math('tan')">tan</button>
+                    <button class="key sci" onclick="math('log')">log</button>
+                    <button class="key sci" onclick="math('sqrt')">√</button>
+                    <button class="key sci" onclick="math('pow')">x²</button>
+                    <button class="key sci" onclick="insert('(')">(</button>
+                    <button class="key sci" onclick="insert(')')">)</button>
+                </div>
 
-<input id="calc-display" readonly>
+                <div class="keypad">
+                    <button class="key dark-grey" onclick="clearCalc()">C</button>
+                    <button class="key dark-grey" onclick="backspace()">⌫</button>
+                    <button class="key dark-grey" onclick="insert('%')">%</button>
+                    <button class="key orange" onclick="insert('/')">÷</button>
+                    
+                    <button class="key" onclick="insert('7')">7</button>
+                    <button class="key" onclick="insert('8')">8</button>
+                    <button class="key" onclick="insert('9')">9</button>
+                    <button class="key orange" onclick="insert('*')">×</button>
+                    
+                    <button class="key" onclick="insert('4')">4</button>
+                    <button class="key" onclick="insert('5')">5</button>
+                    <button class="key" onclick="insert('6')">6</button>
+                    <button class="key orange" onclick="insert('-')">−</button>
+                    
+                    <button class="key" onclick="insert('1')">1</button>
+                    <button class="key" onclick="insert('2')">2</button>
+                    <button class="key" onclick="insert('3')">3</button>
+                    <button class="key orange" onclick="insert('+')">+</button>
+                    
+                    <button class="key wide" onclick="insert('0')">0</button>
+                    <button class="key" onclick="insert('.')">,</button>
+                    <button class="key orange" onclick="calculate()">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="history" id="history"></div>
-
-<div class="grid" id="grid"></div>
-
-<button id="send" class="wide">Enviar para Notas</button>
-
-</div>
-</div>
+    <div class="modal-overlay" id="listModal">
+        <div class="sheet" id="listSheet">
+            <div class="drag-handle"><div class="drag-pill"></div></div>
+            <div class="notes-list-content">
+                <div class="list-header">Notas Guardadas</div>
+                <div id="savedListContainer">
+                    </div>
+            </div>
+        </div>
+    </div>
 
 <script>
-const modal=document.getElementById("modal");
-const sheet=document.getElementById("sheet");
-const display=document.getElementById("calc-display");
-const grid=document.getElementById("grid");
-const notes=document.getElementById("notes");
-const historyBox=document.getElementById("history");
+    // --- Data & State ---
+    const dateLabel = document.getElementById('dateLabel');
+    const titleInput = document.getElementById('title');
+    const notesInput = document.getElementById('notes');
+    
+    // Set Date
+    const now = new Date();
+    dateLabel.textContent = now.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
-let history=[];
+    // --- Calculator Logic ---
+    const display = document.getElementById('display');
+    let isSciVisible = false;
 
-const buttons=[
-"C","⌫","%","÷",
-"7","8","9","×",
-"4","5","6","-",
-"1","2","3","+",
-"0",".","="
-];
+    function insert(v) {
+        if(display.value === '0' && !isNaN(v)) display.value = '';
+        if(display.value === 'Erro') display.value = '';
+        display.value += v;
+    }
+    function clearCalc() { display.value = '0'; }
+    function backspace() { display.value = display.value.slice(0, -1) || '0'; }
+    
+    function calculate() {
+        try {
+            // Safe eval replacement could be implemented, but eval is okay for simple local calc
+            display.value = eval(display.value.replace(/×/g, '*').replace(/÷/g, '/')); 
+        } catch { display.value = 'Erro'; }
+    }
 
-function render(){
-grid.innerHTML="";
-buttons.forEach(b=>{
-const btn=document.createElement("button");
-btn.textContent=b;
-if("+-×=÷".includes(b))btn.classList.add("orange");
-if(["C","⌫","%"].includes(b))btn.classList.add("op");
-if(b==="0")btn.classList.add("wide");
-btn.onclick=()=>press(b);
-grid.appendChild(btn);
-});
-}
+    function math(func) {
+        let v = display.value;
+        try {
+            if(func === 'sqrt') display.value = Math.sqrt(eval(v));
+            else if(func === 'pow') display.value = Math.pow(eval(v), 2);
+            else display.value = Math.[func](eval(v)); // sin, cos, etc
+        } catch { display.value = 'Erro'; }
+    }
 
-function press(v){
-if(v==="C"){display.value="";return;}
-if(v==="⌫"){display.value=display.value.slice(0,-1);return;}
-if(v==="="){
-try{
-const exp=display.value.replace(/×/g,"*").replace(/÷/g,"/");
-const res=eval(exp);
-history.unshift(`${display.value} = ${res}`);
-updateHistory();
-display.value=res;
-}catch{display.value="Erro"}
-return;
-}
-display.value+=v;
-}
+    document.getElementById('toggleSci').onclick = () => {
+        isSciVisible = !isSciVisible;
+        document.getElementById('sciRow').classList.toggle('show', isSciVisible);
+        document.getElementById('toggleSci').textContent = isSciVisible ? 'Ocultar Científica' : 'Mostrar Científica';
+    };
 
-function updateHistory(){
-historyBox.innerHTML="";
-history.slice(0,5).forEach(h=>{
-const d=document.createElement("div");
-d.textContent=h;
-d.onclick=()=>display.value=h.split("=")[1].trim();
-historyBox.appendChild(d);
-});
-}
+    document.getElementById('pasteToNote').onclick = () => {
+        if(display.value !== 'Erro') {
+            notesInput.value += `\nResultado: ${display.value}`;
+            closeModal('calcModal');
+        }
+    };
 
-document.getElementById("openCalc").onclick=()=>modal.classList.add("show");
-document.getElementById("close").onclick=()=>modal.classList.remove("show");
-document.getElementById("historyBtn").onclick=()=>historyBox.classList.toggle("show");
-document.getElementById("send").onclick=()=>{
-if(display.value)notes.value+=`• ${display.value}\n`;
-};
+    // --- Saved Notes Logic (LocalStorage) ---
+    function saveNote() {
+        if(!titleInput.value.trim() && !notesInput.value.trim()) return alert("A nota está vazia!");
+        
+        const notes = JSON.parse(localStorage.getItem('proNotesApp') || '[]');
+        const newNote = {
+            id: Date.now(),
+            title: titleInput.value || 'Sem Título',
+            body: notesInput.value,
+            date: new Date().toLocaleDateString()
+        };
+        
+        notes.unshift(newNote); // Add to top
+        localStorage.setItem('proNotesApp', JSON.stringify(notes));
+        
+        // Reset inputs
+        titleInput.value = '';
+        notesInput.value = '';
+        alert("Nota guardada!");
+        renderNotesList();
+    }
 
-/* Swipe gestures */
-let startY=0,startX=0;
-sheet.addEventListener("touchstart",e=>{
-startY=e.touches[0].clientY;
-startX=e.touches[0].clientX;
-});
-sheet.addEventListener("touchend",e=>{
-const dy=e.changedTouches[0].clientY-startY;
-const dx=e.changedTouches[0].clientX-startX;
-if(dy>80)modal.classList.remove("show");
-if(dy<-80)historyBox.classList.add("show");
-if(dx>80)display.value="";
-});
+    function renderNotesList() {
+        const container = document.getElementById('savedListContainer');
+        const notes = JSON.parse(localStorage.getItem('proNotesApp') || '[]');
+        container.innerHTML = '';
 
-/* Dark mode */
-document.getElementById("dark").onclick=()=>{
-document.body.dataset.theme=
-document.body.dataset.theme==="dark"?"light":"dark";
-};
+        if(notes.length === 0) container.innerHTML = '<div style="text-align:center;color:var(--text-sec)">Nenhuma nota guardada.</div>';
 
-render();
+        notes.forEach(note => {
+            const div = document.createElement('div');
+            div.className = 'note-item';
+            div.innerHTML = `
+                <div class="note-info" onclick="loadNote(${note.id})">
+                    <div class="note-title">${note.title}</div>
+                    <div class="note-preview">${note.body.substring(0, 30)}...</div>
+                </div>
+                <button class="btn-delete" onclick="deleteNote(${note.id})">🗑</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function deleteNote(id) {
+        if(!confirm("Apagar nota?")) return;
+        let notes = JSON.parse(localStorage.getItem('proNotesApp') || '[]');
+        notes = notes.filter(n => n.id !== id);
+        localStorage.setItem('proNotesApp', JSON.stringify(notes));
+        renderNotesList();
+    }
+
+    window.loadNote = function(id) { // Global scope needed for onclick html string
+        const notes = JSON.parse(localStorage.getItem('proNotesApp') || '[]');
+        const note = notes.find(n => n.id === id);
+        if(note) {
+            titleInput.value = note.title;
+            notesInput.value = note.body;
+            closeModal('listModal');
+        }
+    };
+
+    document.getElementById('btnSave').onclick = saveNote;
+    document.getElementById('btnClear').onclick = () => {
+        if(confirm("Limpar ecrã atual?")) { titleInput.value = ''; notesInput.value = ''; }
+    };
+
+    // --- Modal System & Swipe Gestures ---
+    function openModal(id) {
+        document.getElementById(id).classList.add('open');
+        if(id === 'listModal') renderNotesList();
+    }
+    
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('open');
+        // Reset transform in case it was dragged
+        const sheet = document.querySelector(`#${id} .sheet`);
+        sheet.style.transform = '';
+    }
+
+    document.getElementById('btnCalc').onclick = () => openModal('calcModal');
+    document.getElementById('btnList').onclick = () => openModal('listModal');
+
+    // Swipe Logic (Generic for both sheets)
+    ['calcModal', 'listModal'].forEach(modalID => {
+        const modal = document.getElementById(modalID);
+        const sheet = modal.querySelector('.sheet');
+        let startY = 0;
+        let currentY = 0;
+
+        sheet.addEventListener('touchstart', (e) => {
+            // Only allow drag if we are at the top of the scroll (for lists)
+            if(sheet.scrollTop > 0) return;
+            startY = e.touches[0].clientY;
+            sheet.classList.add('dragging');
+        }, {passive: true});
+
+        sheet.addEventListener('touchmove', (e) => {
+            if(sheet.scrollTop > 0) return;
+            currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+            if (diff > 0) { // Only drag down
+                e.preventDefault(); 
+                sheet.style.transform = `translateY(${diff}px)`;
+            }
+        }, {passive: false});
+
+        sheet.addEventListener('touchend', (e) => {
+            sheet.classList.remove('dragging');
+            const diff = currentY - startY;
+            if (diff > 120) { // Threshold to close
+                closeModal(modalID);
+            } else {
+                sheet.style.transform = ''; // Snap back
+            }
+            startY = 0; currentY = 0;
+        });
+
+        // Click outside to close
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) closeModal(modalID);
+        });
+    });
+
+    // --- Theme Toggle ---
+    document.getElementById('btnTheme').onclick = () => {
+        const current = document.body.dataset.theme;
+        document.body.dataset.theme = current === 'light' ? 'dark' : 'light';
+    };
+
 </script>
-
 </body>
 </html>
+
