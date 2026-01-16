@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Pro Notes & Calc Ultimate</title>
 <style>
     :root {
@@ -20,9 +20,13 @@
     }
 
     * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    
     body {
         margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-        background: var(--bg); color: var(--text); height: 100vh; overflow: hidden;
+        background: var(--bg); color: var(--text); 
+        /* Usar dvh para evitar problemas com barras do navegador */
+        height: 100dvh; 
+        overflow: hidden;
         display: flex; flex-direction: column;
     }
 
@@ -40,7 +44,10 @@
 
     /* --- DOCK --- */
     .dock-bar {
-        position: fixed; bottom: 30px; left: 20px; right: 20px;
+        position: fixed; 
+        /* Ajuste para respeitar a safe area em baixo também */
+        bottom: calc(30px + env(safe-area-inset-bottom)); 
+        left: 20px; right: 20px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
         padding: 10px 15px; border-radius: 45px;
         display: flex; justify-content: space-between; align-items: center;
@@ -59,6 +66,8 @@
     .overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
         opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        /* Garante que o overlay ocupa tudo mesmo com barras do browser */
+        height: 100dvh; 
     }
     .overlay.active { opacity: 1; pointer-events: auto; }
     
@@ -66,7 +75,12 @@
         position: absolute; bottom: 0; left: 0; right: 0;
         background: var(--sheet-bg); border-radius: 30px 30px 0 0;
         transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-        display: flex; flex-direction: column; max-height: 95vh;
+        display: flex; flex-direction: column; 
+        
+        /* CORREÇÃO PRINCIPAL: */
+        max-height: 90dvh; /* Nunca ocupa mais que 90% da altura visível real */
+        padding-bottom: env(safe-area-inset-bottom); /* Espaço para a barra do iPhone */
+        
         backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
         border-top: 1px solid rgba(255,255,255,0.1);
     }
@@ -76,9 +90,16 @@
     .handle-bar { width: 40px; height: 5px; background: var(--border); border-radius: 10px; opacity: 0.8; }
 
     /* --- CALCULADORA --- */
-    .calc-container { padding: 0 20px 40px 20px; display: flex; flex-direction: column; align-items: center; }
+    .calc-container { 
+        padding: 0 20px 20px 20px; /* Padding bottom reduzido pois já temos o safe-area na sheet */
+        display: flex; flex-direction: column; align-items: center; 
+        
+        /* Permite scroll se o ecrã for muito pequeno (iPhone SE, etc) */
+        flex: 1;
+        overflow-y: auto;
+    }
     
-    .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; }
+    .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; flex-shrink: 0; }
     #calcResult {
         width: 100%; text-align: right; font-size: 3.5rem; border: none;
         background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0;
@@ -89,7 +110,8 @@
         width: 100%; background: rgba(128,128,128,0.1); border-radius: 15px;
         max-height: 0; overflow-y: auto; transition: max-height 0.3s ease;
         margin-bottom: 10px;
-        overscroll-behavior: contain; /* Evita arrastar a sheet quando faz scroll */
+        overscroll-behavior: contain;
+        flex-shrink: 0;
     }
     .history-dropdown.open { max-height: 180px; border: 1px solid var(--border); }
     
@@ -107,14 +129,20 @@
     }
 
     /* Tools & Grid */
-    .calc-tools { width: 100%; display: flex; justify-content: space-between; margin-bottom: 15px; padding: 0 5px; }
+    .calc-tools { 
+        width: 100%; display: flex; justify-content: space-between; 
+        margin-bottom: 15px; padding: 0 5px; flex-shrink: 0; 
+    }
     .tool-btn { background: none; border: none; font-weight: 600; font-size: 0.95rem; color: var(--accent); padding: 5px; }
 
-    .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; }
+    .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; flex-shrink: 0; }
     .sci-row.show { display: grid; }
     .sci-btn { height: 40px; border-radius: 10px; border: none; background: var(--btn-grey); color: var(--text); font-size: 0.8rem; font-weight: 600; }
 
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; width: 100%; max-width: 380px; }
+    .keypad { 
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; 
+        width: 100%; max-width: 380px; margin-bottom: 10px; flex-shrink: 0; 
+    }
     .key-btn {
         aspect-ratio: 1/1; width: 100%; max-width: 75px; 
         border-radius: 50%; border: none; font-size: 1.7rem;
@@ -131,7 +159,12 @@
     }
 
     /* --- NOTAS --- */
-    .list-container { padding: 0 20px 40px 20px; overflow-y: auto; height: 70vh; width: 100%; }
+    .list-container { 
+        padding: 0 20px 20px 20px; 
+        overflow-y: auto; 
+        flex: 1; /* Ocupa o espaço disponível sem forçar altura fixa */
+        width: 100%; 
+    }
     .note-card {
         background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px;
         display: flex; justify-content: space-between; align-items: center;
@@ -295,8 +328,7 @@
                     // Arredonda se necessário
                     if(!Number.isInteger(result)) result = parseFloat(result.toFixed(2));
                     
-                    // Substitui "Expressão=" por "Expressão=Resultado"
-                    // ou apenas adiciona o resultado. Aqui adiciona o resultado.
+                    // Adiciona o resultado
                     noteBody.value = val + result;
                 } catch (err) {
                     // Se a conta for inválida, não faz nada
@@ -327,7 +359,7 @@
             let expr = display.value.replace(/×/g, '*').replace(/÷/g, '/');
             let result;
             
-            // Lógica de Percentagem (Soma e Subtração Financeira)
+            // Lógica de Percentagem
             const percentPattern = /([0-9.]+)[\+\-]([0-9.]+)%/;
             if (expr.includes('%')) {
                 if (percentPattern.test(expr)) {
@@ -419,7 +451,7 @@
         }
     };
 
-    // --- MODAL & SWIPE COM CORREÇÃO DE SCROLL ---
+    // --- MODAL & SWIPE COM CORREÇÃO ---
     function openModal(id) { 
         document.getElementById(id).classList.add('active'); 
         if(id==='modalList') renderNotes(); 
@@ -438,15 +470,12 @@
         let startY = 0;
 
         sheet.addEventListener('touchstart', (e) => {
-            // CORREÇÃO: Se tocar no histórico ou lista de notas, não iniciar swipe para fechar
+            // Se tocar no histórico ou lista de notas, não iniciar swipe para fechar
             // a não ser que o scroll esteja no topo absoluto
-            const isScrollable = e.target.closest('.history-dropdown, .list-container');
+            const isScrollable = e.target.closest('.history-dropdown, .list-container, .calc-container');
             if (isScrollable && isScrollable.scrollTop > 0) return;
-
-            // Se for dentro do histórico, verifica se está no topo para permitir swipe (opcional)
-            // ou simplesmente bloqueia o swipe da sheet se estiver a interagir com o historico
-            if (e.target.closest('.history-dropdown')) return;
-
+            
+            // Verifica se está no topo visual
             if(sheet.scrollTop === 0) startY = e.touches[0].clientY;
         }, {passive: true});
 
