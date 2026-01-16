@@ -45,6 +45,7 @@
     /* --- DOCK --- */
     .dock-bar {
         position: fixed; 
+        /* Ajuste para respeitar a safe area em baixo (barra preta/branca do iPhone) */
         bottom: calc(30px + env(safe-area-inset-bottom)); 
         left: 20px; right: 20px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
@@ -72,7 +73,9 @@
     .sheet {
         position: absolute; bottom: 0; left: 0; right: 0;
         background: var(--sheet-bg); border-radius: 30px 30px 0 0;
-        transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        transform: translateY(100%); 
+        /* A transição é gerida pelo CSS, mas o JS pode desligá-la durante o arrasto */
+        transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
         display: flex; flex-direction: column; 
         
         /* Limites e Safe Area */
@@ -91,7 +94,7 @@
     .calc-container { 
         padding: 0 20px 20px 20px; 
         display: flex; flex-direction: column; align-items: center; 
-        flex: 1; overflow-y: auto;
+        flex: 1; overflow-y: auto; /* Permite scroll se o ecrã for pequeno */
     }
     
     .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; flex-shrink: 0; }
@@ -285,7 +288,7 @@
     </div>
 
 <script>
-    // Referências
+    // --- REFERÊNCIAS ---
     const titleInput = document.getElementById('titleInput');
     const noteBody = document.getElementById('noteBody');
     const display = document.getElementById('calcResult');
@@ -295,7 +298,7 @@
     let savedNotes = JSON.parse(localStorage.getItem('appNotes') || '[]');
     let calcHistory = [];
 
-    // --- CÁLCULO AUTOMÁTICO NA NOTA ---
+    // --- CÁLCULO NA NOTA ---
     noteBody.addEventListener('input', (e) => {
         if (e.data === '=' || e.target.value.endsWith('=')) {
             const val = e.target.value;
@@ -319,7 +322,7 @@
         if(confirm("Limpar editor?")) { titleInput.value = ''; noteBody.value = ''; }
     };
 
-    // --- LÓGICA CALCULADORA ---
+    // --- CALCULADORA ---
     function ins(v) {
         if(display.value === '0' && !isNaN(v)) display.value = '';
         if(display.value === 'Erro') display.value = '';
@@ -387,7 +390,7 @@
         if(display.value !== 'Erro') noteBody.value += (noteBody.value ? '\n' : '') + display.value;
     };
 
-    // --- NOTAS (STORAGE) ---
+    // --- NOTAS ---
     function renderNotes() {
         const c = document.getElementById('notesContainer');
         c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888">Vazio</p>';
@@ -419,17 +422,20 @@
         }
     };
 
-    // --- SISTEMA DE MODAL & SWIPE (CORRIGIDO) ---
+    // --- SISTEMA DE MODAL & SWIPE (CORREÇÃO DE BUGS) ---
     
     function openModal(id) { 
         const overlay = document.getElementById(id);
         const sheet = overlay.querySelector('.sheet');
         
-        // CORREÇÃO CRÍTICA: Limpar estilos manuais anteriores
-        sheet.style.transform = '';
-        sheet.style.transition = ''; 
+        // 1. HARD RESET: Remove qualquer estilo inline (como translateY do swipe anterior)
+        sheet.style.cssText = ''; 
         
+        // 2. FORÇA REFLOW: Obriga o browser a pintar a sheet "limpa" antes de animar
+        void sheet.offsetWidth; 
+
         overlay.classList.add('active'); 
+        
         if(id==='modalList') renderNotes(); 
         if(id==='modalConverter') initConverter(); 
     }
@@ -437,12 +443,12 @@
     function closeModal(id) { 
         const overlay = document.getElementById(id);
         const sheet = overlay.querySelector('.sheet');
+        
         overlay.classList.remove('active');
         
-        // Espera animação acabar e limpa tudo
+        // Garante que limpamos estilos após a animação de fecho
         setTimeout(() => {
-             sheet.style.transform = '';
-             sheet.style.transition = '';
+            sheet.style.cssText = '';
         }, 350);
     }
     
@@ -451,50 +457,54 @@
     document.getElementById('btnConverter').onclick = () => openModal('modalConverter');
 
     document.querySelectorAll('.overlay').forEach(overlay => {
-        // Fechar ao clicar fora
-        overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(overlay.id); });
+        overlay.addEventListener('click', e => { 
+            if(e.target === overlay) closeModal(overlay.id); 
+        });
         
         const sheet = overlay.querySelector('.sheet');
         let startY = 0;
+        let currentY = 0;
 
-        // Início do toque
         sheet.addEventListener('touchstart', (e) => {
             const isScrollable = e.target.closest('.history-dropdown, .list-container, .calc-container');
-            // Se estivermos dentro de algo com scroll, e não estivermos no topo, não arrasta a sheet
+            // Só deixa arrastar a sheet se o scroll interno estiver no topo
             if (isScrollable && isScrollable.scrollTop > 0) return;
             
-            // Só começa o arrasto se a sheet estiver no topo (0 scroll)
-            if(sheet.scrollTop <= 0) startY = e.touches[0].clientY;
+            startY = e.touches[0].clientY;
+            
+            // Remove a animação CSS para o arrasto ser instantâneo
+            sheet.style.transition = 'none';
         }, {passive: true});
 
-        // Durante o arrasto
         sheet.addEventListener('touchmove', (e) => {
             if(startY === 0) return;
-            const diff = e.touches[0].clientY - startY;
+            currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+            
+            // Só mexe se for para baixo
             if(diff > 0) { 
                 if(e.cancelable) e.preventDefault(); 
                 sheet.style.transform = `translateY(${diff}px)`; 
-                sheet.style.transition = 'none'; // Remove transição para arrastar fluidamente
             }
         }, {passive: false});
 
-        // Fim do arrasto
         sheet.addEventListener('touchend', (e) => {
             if(startY === 0) return;
-            const diff = e.changedTouches[0].clientY - startY;
+            const diff = currentY - startY;
 
-            // Restaura a animação suave
-            sheet.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+            // Restaura a transição suave
+            sheet.style.transition = ''; 
 
             if(diff > 120) {
-                // Se arrastou muito para baixo -> Fecha
-                sheet.style.transform = ''; // Limpa o estilo inline para o CSS assumir
-                closeModal(overlay.id);
+                // Fechar: Limpa o transform manual e deixa o CSS fechar
+                sheet.style.transform = ''; 
+                overlay.classList.remove('active');
             } else {
-                // Se arrastou pouco -> Volta para cima
+                // Voltar: Limpa o transform para voltar a 0
                 sheet.style.transform = '';
             }
             startY = 0;
+            currentY = 0;
         });
     });
 
@@ -562,7 +572,6 @@
         const text = `${val} ${from} = ${result} ${to}`;
         noteBody.value += (noteBody.value ? '\n' : '') + text;
     }
-
 </script>
 </body>
 </html>
