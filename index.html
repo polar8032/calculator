@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Pro Notes & Calc Ultimate</title>
+
+<script>
+    // Verifica a memória imediatamente. Se não houver nada, usa 'light'.
+    const savedTheme = localStorage.getItem('appTheme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
+
 <style>
     :root {
         --bg: #f2f2f7; --card: #ffffff; --text: #000000;
@@ -12,6 +19,7 @@
         --btn-grey: #e5e5ea; --btn-text: #000;
         --border: #c6c6c8; --blur: blur(20px);
     }
+    /* O seletor agora procura o atributo na tag HTML */
     [data-theme="dark"] {
         --bg: #000000; --card: #1c1c1e; --text: #ffffff;
         --sheet-bg: rgba(30, 30, 30, 0.98);
@@ -155,7 +163,7 @@
     .btn-trash { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; width: 35px; height: 35px; border-radius: 50%; margin-left: 10px; }
 </style>
 </head>
-<body data-theme="light">
+<body>
 
     <div class="editor-area">
         <input type="text" id="titleInput" placeholder="Título">
@@ -254,17 +262,16 @@
     let calcHistory = [];
     let pendingCalculation = null;
 
-    // --- NOVA FUNCIONALIDADE: TEMA PERSISTENTE ---
-    // 1. Carregar tema salvo ou usar light como padrão
-    const savedTheme = localStorage.getItem('appTheme') || 'light';
-    document.body.dataset.theme = savedTheme;
-
-    // 2. Atualizar o clique do botão
+    // --- NOVA LÓGICA DE TEMA (BOTÃO) ---
+    // A inicialização já foi feita no <head>
     document.getElementById('btnTheme').onclick = () => {
-        const current = document.body.dataset.theme;
+        // Agora verificamos o atributo no elemento HTML, não no body
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
         const newTheme = current === 'light' ? 'dark' : 'light';
-        document.body.dataset.theme = newTheme;
-        localStorage.setItem('appTheme', newTheme); // Guardar na memória
+        
+        // Aplica e Salva
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('appTheme', newTheme);
     };
 
     // --- BOTÃO + ---
@@ -464,6 +471,7 @@
 </script>
 </body>
 </html>
+
 
 
 
