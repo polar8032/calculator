@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Pro Notes & Converter</title>
+<title>Pro Notes Ultra</title>
 <style>
     :root {
         --bg: #f2f2f7; --card: #ffffff; --text: #000000;
-        --accent: #007aff; --orange: #ff9500; --red: #ff3b30; --green: #34c759;
+        --accent: #007aff; --orange: #ff9500; --red: #ff3b30;
         --sheet-bg: rgba(245, 245, 247, 0.98);
         --btn-grey: #e5e5ea; --btn-text: #000;
-        --border: #c6c6c8; --blur: blur(25px);
+        --border: #c6c6c8; --blur: blur(20px);
     }
     [data-theme="dark"] {
         --bg: #000000; --card: #1c1c1e; --text: #ffffff;
@@ -26,9 +26,8 @@
         display: flex; flex-direction: column;
     }
 
-    /* --- EDITOR --- */
-    .editor-area { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 110px 20px; }
-    
+    /* Editor */
+    .editor-area { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 120px 20px; }
     input#titleInput {
         background: transparent; border: none; font-size: 2.2rem; font-weight: 700;
         color: var(--text); outline: none; margin-bottom: 15px; width: 100%;
@@ -38,134 +37,102 @@
         color: var(--text); outline: none; resize: none;
     }
 
-    /* --- DOCK (Barra Inferior) --- */
+    /* Dock (Menu Inferior) */
     .dock-bar {
         position: fixed; bottom: 30px; left: 15px; right: 15px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-        padding: 10px 10px; border-radius: 45px;
+        padding: 8px 10px; border-radius: 45px;
         display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid rgba(128,128,128,0.2); z-index: 100;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid rgba(128,128,128,0.2); 
+        z-index: 999; pointer-events: auto; /* Garante cliques */
     }
     .dock-btn {
-        width: 48px; height: 48px; border-radius: 50%; border: none;
-        background: transparent; color: var(--accent); font-size: 1.4rem;
+        width: 50px; height: 50px; border-radius: 50%; border: none;
+        background: transparent; color: var(--accent); font-size: 1.5rem;
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        transition: transform 0.1s;
+        transition: transform 0.1s; cursor: pointer;
     }
     .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.15); }
     .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
 
-    /* --- MODAIS (Sheets) --- */
+    /* Sheets (Janelas) */
     .overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;
         opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        display: flex; flex-direction: column; justify-content: flex-end;
     }
     .overlay.active { opacity: 1; pointer-events: auto; }
     
     .sheet {
-        position: absolute; bottom: 0; left: 0; right: 0;
         background: var(--sheet-bg); border-radius: 30px 30px 0 0;
         transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-        display: flex; flex-direction: column; max-height: 95vh;
+        display: flex; flex-direction: column; max-height: 90vh;
         backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-        border-top: 1px solid rgba(255,255,255,0.1);
+        border-top: 1px solid rgba(255,255,255,0.1); width: 100%;
     }
     .overlay.active .sheet { transform: translateY(0); }
     
     .handle-area { width: 100%; padding: 15px 0; display: flex; justify-content: center; flex-shrink: 0; }
     .handle-bar { width: 40px; height: 5px; background: var(--border); border-radius: 10px; opacity: 0.8; }
 
-    /* --- CALCULADORA --- */
+    /* Calculadora */
     .calc-container { padding: 0 20px 40px 20px; display: flex; flex-direction: column; align-items: center; }
-    
-    .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; }
     #calcResult {
         width: 100%; text-align: right; font-size: 3.5rem; border: none;
-        background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0;
+        background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0 0 10px 0;
     }
-
-    /* Histórico Corrigido */
+    
+    /* Histórico */
     .history-dropdown {
         width: 100%; background: rgba(128,128,128,0.08); border-radius: 15px;
         max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
         margin-bottom: 10px; display: flex; flex-direction: column;
     }
     .history-dropdown.open { max-height: 200px; border: 1px solid var(--border); }
-    
     .hist-header { 
         display: flex; justify-content: space-between; align-items: center; 
         padding: 8px 12px; background: rgba(128,128,128,0.05); border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
     }
-    .btn-clear-hist { font-size: 1rem; color: var(--red); background: none; border: none; padding: 5px; cursor: pointer; }
-    
-    .hist-list-content { 
-        padding: 5px; overflow-y: auto; flex: 1; 
-        overscroll-behavior: contain; /* Importante para scroll */
-    }
-    .hist-entry { 
-        text-align: right; padding: 8px; border-bottom: 1px solid rgba(128,128,128,0.1); 
-        font-size: 1.1rem; color: var(--text);
-    }
+    .hist-list-content { padding: 5px; overflow-y: auto; flex: 1; overscroll-behavior: contain; }
+    .hist-entry { text-align: right; padding: 8px; border-bottom: 1px solid rgba(128,128,128,0.1); font-size: 1.1rem; color: var(--text); }
 
-    /* Teclado Calc */
-    .calc-tools { width: 100%; display: flex; justify-content: space-between; margin-bottom: 15px; padding: 0 5px; }
+    /* Botões Calc */
+    .calc-tools { width: 100%; display: flex; justify-content: space-between; margin-bottom: 15px; }
     .tool-btn { background: none; border: none; font-weight: 600; font-size: 0.95rem; color: var(--accent); padding: 5px; }
-
+    
     .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; }
     .sci-row.show { display: grid; }
-    .sci-btn { height: 40px; border-radius: 10px; border: none; background: var(--btn-grey); color: var(--text); font-size: 0.8rem; font-weight: 600; }
+    .sci-btn { height: 40px; border-radius: 10px; background: var(--btn-grey); color: var(--text); font-weight: 600; border: none;}
 
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; width: 100%; max-width: 380px; }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 380px; }
     .key-btn {
-        aspect-ratio: 1/1; width: 100%; max-width: 75px; 
-        border-radius: 50%; border: none; font-size: 1.7rem;
+        aspect-ratio: 1/1; width: 100%; max-width: 72px; 
+        border-radius: 50%; border: none; font-size: 1.6rem;
         background: var(--btn-grey); color: var(--btn-text);
         display: flex; align-items: center; justify-content: center; margin: 0 auto; 
     }
     .key-btn:active { filter: brightness(0.85); }
     .key-btn.orange { background: var(--orange); color: #fff; }
-    .key-btn.wide { grid-column: span 2; width: 100%; max-width: none; aspect-ratio: auto; height: 75px; border-radius: 40px; justify-content: flex-start; padding-left: 30px; }
+    .key-btn.wide { grid-column: span 2; width: 100%; max-width: none; aspect-ratio: auto; height: 72px; border-radius: 40px; justify-content: flex-start; padding-left: 30px; }
 
-    /* --- CONVERSOR --- */
-    .conv-container { padding: 0 25px 40px 25px; }
-    .conv-section { margin-bottom: 20px; }
-    .conv-label { font-size: 0.9rem; color: #8e8e93; margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
-    
+    /* Conversor */
+    .conv-container { padding: 0 25px 40px 25px; width: 100%; }
     .conv-input-group {
         display: flex; gap: 10px; align-items: center; margin-bottom: 15px;
         background: var(--card); padding: 5px; border-radius: 12px; border: 1px solid var(--border);
     }
-    .conv-input {
-        flex: 1; border: none; background: transparent; font-size: 1.5rem; 
-        padding: 10px; color: var(--text); outline: none;
-    }
-    .conv-select {
-        background: var(--btn-grey); border: none; color: var(--text);
-        padding: 8px 12px; border-radius: 8px; font-size: 1rem; outline: none;
-        max-width: 100px;
-    }
-    .conv-result-display {
-        font-size: 2rem; font-weight: 300; text-align: center; margin: 20px 0;
-        color: var(--accent);
-    }
-    .btn-full {
-        width: 100%; padding: 15px; border-radius: 15px; border: none;
-        background: var(--accent); color: #fff; font-size: 1.1rem; font-weight: 600;
-    }
+    .conv-input { flex: 1; border: none; background: transparent; font-size: 1.5rem; padding: 10px; color: var(--text); outline: none; }
+    .conv-select { background: var(--btn-grey); border: none; color: var(--text); padding: 8px; border-radius: 8px; font-size: 1rem; max-width: 100px; }
+    .btn-full { width: 100%; padding: 15px; border-radius: 15px; background: var(--accent); color: #fff; font-size: 1.1rem; border: none; margin-top: 20px;}
 
-    /* --- NOTAS LISTA --- */
+    /* Lista Notas */
     .list-container { padding: 0 20px 40px 20px; overflow-y: auto; height: 70vh; width: 100%; }
     .note-card {
         background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px;
         display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    .note-card-text { flex: 1; overflow: hidden; }
-    .btn-trash {
-        background: rgba(255, 59, 48, 0.1); color: var(--red); border: none;
-        width: 35px; height: 35px; border-radius: 50%; margin-left: 10px;
-    }
+    .btn-trash { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; width: 35px; height: 35px; border-radius: 50%; margin-left: 10px; }
 
 </style>
 </head>
@@ -173,14 +140,14 @@
 
     <div class="editor-area">
         <input type="text" id="titleInput" placeholder="Título">
-        <textarea id="noteBody" placeholder="Escreve aqui... (ex: 10+5=)"></textarea>
+        <textarea id="noteBody" placeholder="Escreve aqui... (ex: 25*4=)"></textarea>
     </div>
 
     <div class="dock-bar">
         <button class="dock-btn" id="btnTheme">◑</button>
         <button class="dock-btn" id="btnList">☰</button>
         <button class="dock-btn main-action" id="btnOpenCalc">🧮</button>
-        <button class="dock-btn" id="btnOpenConv" style="font-size:1.8rem;">⇄</button>
+        <button class="dock-btn" id="btnOpenConv" style="font-size:1.8rem">⇄</button>
         <button class="dock-btn" id="btnSave">💾</button>
     </div>
 
@@ -188,24 +155,20 @@
         <div class="sheet">
             <div class="handle-area"><div class="handle-bar"></div></div>
             <div class="calc-container">
-                
                 <div class="history-dropdown" id="historyDropdown">
                     <div class="hist-header">
-                        <span style="font-weight:600; color:var(--text-sec)">Histórico</span>
-                        <button class="btn-clear-hist" id="btnClearHist">🗑 Limpar</button>
+                        <span style="font-weight:600;color:var(--text-sec)">Histórico</span>
+                        <button style="border:none;background:none;color:var(--red)" id="btnClearHist">Limpar</button>
                     </div>
-                    <div class="hist-list-content" id="historyList">
-                        </div>
+                    <div class="hist-list-content" id="historyList"></div>
                 </div>
 
-                <div class="display-wrapper">
-                    <input id="calcResult" readonly value="0">
-                </div>
+                <input id="calcResult" readonly value="0">
 
                 <div class="calc-tools">
-                    <button class="tool-btn" id="btnShowHist">🕒 Ver Histórico</button>
+                    <button class="tool-btn" id="btnShowHist">🕒 Histórico</button>
                     <button class="tool-btn" id="btnToggleSci">Científica</button>
-                    <button class="tool-btn" style="color:var(--orange)" id="btnPaste">Inserir na Nota</button>
+                    <button class="tool-btn" style="color:var(--orange)" id="btnPaste">Inserir</button>
                 </div>
 
                 <div class="sci-row" id="sciRow">
@@ -217,8 +180,8 @@
                     <button class="sci-btn" onclick="ins('(')">(</button>
                     <button class="sci-btn" onclick="ins(')')">)</button>
                     <button class="sci-btn" onclick="sci('pow')">x²</button>
-                    <button class="sci-btn" onclick="ins('3.1415')">π</button>
-                    <button class="sci-btn" onclick="ins('2.7182')">e</button>
+                    <button class="sci-btn" onclick="ins('3.14')">π</button>
+                    <button class="sci-btn" onclick="ins('2.71')">e</button>
                 </div>
 
                 <div class="keypad">
@@ -250,11 +213,11 @@
         <div class="sheet">
             <div class="handle-area"><div class="handle-bar"></div></div>
             <div class="conv-container">
-                <h2 style="margin-top:0">Conversor</h2>
+                <h2 style="margin:0 0 20px 0; text-align:center">Conversor</h2>
                 
-                <label class="conv-label">Tipo</label>
                 <div style="margin-bottom:15px">
-                    <select id="convType" class="conv-select" style="width:100%; max-width:100%">
+                    <label style="color:#888;font-size:0.9rem">TIPO</label>
+                    <select id="convType" class="conv-select" style="width:100%;max-width:100%;margin-top:5px;padding:10px">
                         <option value="length">📏 Distância</option>
                         <option value="weight">⚖️ Peso</option>
                         <option value="volume">💧 Volume</option>
@@ -266,10 +229,10 @@
                     <select id="unitFrom" class="conv-select"></select>
                 </div>
 
-                <div style="text-align:center;color:#8e8e93;font-size:1.2rem">⬇</div>
+                <div style="text-align:center;font-size:1.5rem;color:var(--accent)">⬇</div>
 
                 <div class="conv-input-group">
-                    <div id="convResult" class="conv-input" style="display:flex;align-items:center;">...</div>
+                    <div id="convResult" class="conv-input" style="display:flex;align-items:center">...</div>
                     <select id="unitTo" class="conv-select"></select>
                 </div>
 
@@ -282,26 +245,56 @@
         <div class="sheet">
             <div class="handle-area"><div class="handle-bar"></div></div>
             <div class="list-container">
-                <h2 style="margin-top:0">Notas Guardadas</h2>
+                <h2 style="margin-top:0">Notas</h2>
                 <div id="notesContainer"></div>
             </div>
         </div>
     </div>
 
 <script>
-    // --- UI GERAL ---
+    // --- 1. CONFIGURAÇÃO INICIAL (SEGURANÇA CONTRA ERROS) ---
+    // Definimos os elementos e eventos básicos PRIMEIRO para garantir que os botões funcionam
+    
+    // Elementos UI
+    const titleInput = document.getElementById('titleInput');
+    const noteBody = document.getElementById('noteBody');
+    const display = document.getElementById('calcResult');
+    
+    // Arrays de Dados (com proteção)
+    let savedNotes = [];
+    try {
+        savedNotes = JSON.parse(localStorage.getItem('appNotesSafe') || '[]');
+    } catch (e) {
+        console.log("Erro ao carregar notas, a reiniciar array.");
+        savedNotes = [];
+    }
+
+    let calcHistory = [];
+
+    // --- 2. ATIVAÇÃO DOS BOTÕES (PRIORIDADE MÁXIMA) ---
+    
+    // Funções de Modal
+    function openModal(id) { 
+        document.getElementById(id).classList.add('active'); 
+        if(id === 'modalList') renderNotes();
+    }
+    function closeModal(id) { 
+        document.getElementById(id).classList.remove('active'); 
+    }
+
+    // Atribuir cliques
     document.getElementById('btnTheme').onclick = () => {
         document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light';
     };
-    
-    // --- EDITOR & CÁLCULO AUTO ---
-    const titleInput = document.getElementById('titleInput');
-    const noteBody = document.getElementById('noteBody');
-    
+    document.getElementById('btnList').onclick = () => openModal('modalList');
+    document.getElementById('btnOpenCalc').onclick = () => openModal('modalCalc');
+    document.getElementById('btnOpenConv').onclick = () => openModal('modalConv');
+    document.getElementById('btnSave').onclick = () => saveNote();
     document.getElementById('btnClear').onclick = () => {
         if(confirm("Limpar editor?")) { titleInput.value = ''; noteBody.value = ''; }
     };
 
+    // --- 3. EDITOR & AUTO-CALC ---
     noteBody.addEventListener('input', (e) => {
         if (e.data === '=' || e.target.value.endsWith('=')) {
             const val = e.target.value;
@@ -316,12 +309,7 @@
         }
     });
 
-    // --- 1. CALCULADORA LOGIC ---
-    const display = document.getElementById('calcResult');
-    const historyList = document.getElementById('historyList');
-    const historyDropdown = document.getElementById('historyDropdown');
-    let calcHistory = [];
-
+    // --- 4. CALCULADORA ---
     function ins(v) {
         if(display.value === '0' && !isNaN(v)) display.value = '';
         if(display.value === 'Erro') display.value = '';
@@ -334,21 +322,20 @@
         try {
             let expr = display.value.replace(/×/g, '*').replace(/÷/g, '/');
             let result;
-            const percentPattern = /([0-9.]+)[\+\-]([0-9.]+)%/;
-            
             if (expr.includes('%')) {
+                // Simplificação para estabilidade
+                result = eval(expr.replace(/([0-9.]+)%/g, '($1/100)'));
+                // Se a regex falhar em casos complexos (5+10%), usar try catch interno ou lógica expandida
+                const percentPattern = /([0-9.]+)[\+\-]([0-9.]+)%/;
                 if (percentPattern.test(expr)) {
                     let op = expr.includes('+') ? '+' : '-';
                     let [base, perc] = expr.split(op);
                     let val = parseFloat(base) * (parseFloat(perc)/100);
                     result = op === '+' ? parseFloat(base) + val : parseFloat(base) - val;
-                } else {
-                    result = eval(expr.replace(/([0-9.]+)%/g, '($1/100)'));
                 }
             } else {
                 result = eval(expr);
             }
-            
             if (!Number.isInteger(result)) result = parseFloat(result.toFixed(4));
             addToHistory(display.value, result);
             display.value = result;
@@ -365,44 +352,29 @@
         } catch { display.value = 'Erro'; }
     }
 
-    // --- HISTÓRICO CORRIGIDO ---
+    // Histórico
     function addToHistory(op, res) {
         calcHistory.unshift(`${op} = ${res}`);
         renderHistory();
     }
     function renderHistory() {
-        historyList.innerHTML = calcHistory.map(h => `<div class="hist-entry">${h}</div>`).join('');
+        document.getElementById('historyList').innerHTML = calcHistory.map(h => `<div class="hist-entry">${h}</div>`).join('');
     }
-    document.getElementById('btnClearHist').onclick = (e) => {
-        e.stopPropagation();
-        calcHistory = [];
-        renderHistory();
-    };
-    document.getElementById('btnShowHist').onclick = (e) => {
-        e.stopPropagation();
-        historyDropdown.classList.toggle('open');
-    };
-    document.getElementById('btnToggleSci').onclick = (e) => {
-        e.stopPropagation();
-        document.getElementById('sciRow').classList.toggle('show');
-    };
+    
+    // Listeners Internos Calc
+    document.getElementById('btnClearHist').onclick = (e) => { e.stopPropagation(); calcHistory = []; renderHistory(); };
+    document.getElementById('btnShowHist').onclick = (e) => { e.stopPropagation(); document.getElementById('historyDropdown').classList.toggle('open'); };
+    document.getElementById('btnToggleSci').onclick = (e) => { e.stopPropagation(); document.getElementById('sciRow').classList.toggle('show'); };
     document.getElementById('btnPaste').onclick = (e) => {
         e.stopPropagation();
         if(display.value !== 'Erro') noteBody.value += (noteBody.value ? '\n' : '') + display.value;
     };
 
-    // CORREÇÃO CRÍTICA DO SCROLL
-    // Impede que o scroll dentro da lista de histórico mova a janela inteira
-    historyList.addEventListener('touchmove', (e) => {
-        e.stopPropagation();
-    }, { passive: false });
-
-
-    // --- 2. CONVERSOR LOGIC ---
+    // --- 5. CONVERSOR ---
     const units = {
-        length: { base: 'm', u: { m:1, km:1000, cm:0.01, mm:0.001, mi:1609.34, ft:0.3048, in:0.0254 } },
-        weight: { base: 'kg', u: { kg:1, g:0.001, mg:0.000001, lb:0.453592, oz:0.0283495 } },
-        volume: { base: 'l', u: { l:1, ml:0.001, gal:3.78541, pt:0.473176 } }
+        length: { u: { m:1, km:1000, cm:0.01, mm:0.001, mi:1609.34, ft:0.3048, in:0.0254 } },
+        weight: { u: { kg:1, g:0.001, lb:0.453592, oz:0.0283495 } },
+        volume: { u: { l:1, ml:0.001, gal:3.78541 } }
     };
     
     const convType = document.getElementById('convType');
@@ -416,7 +388,6 @@
         const opts = Object.keys(units[type].u).map(k => `<option value="${k}">${k}</option>`).join('');
         unitFrom.innerHTML = opts;
         unitTo.innerHTML = opts;
-        // Selecionar o segundo como diferente por padrão
         unitTo.selectedIndex = 1;
         doConv();
     }
@@ -425,23 +396,21 @@
         const type = convType.value;
         const val = parseFloat(convInput.value);
         if(isNaN(val)) { convResult.innerText = '---'; return; }
-        
         const fromFactor = units[type].u[unitFrom.value];
         const toFactor = units[type].u[unitTo.value];
-        
-        // Converte para base e depois para destino
         const res = (val * fromFactor) / toFactor;
-        
-        // Formatação inteligente
         let txt = res < 0.001 ? res.toExponential(4) : parseFloat(res.toFixed(4));
         convResult.innerText = txt;
     }
 
+    // Eventos Conversor
     convType.onchange = popUnits;
     unitFrom.onchange = doConv;
     unitTo.onchange = doConv;
     convInput.oninput = doConv;
-    popUnits(); // Init
+    
+    // Iniciar Conversor (com segurança)
+    setTimeout(popUnits, 100); 
 
     document.getElementById('btnPasteConv').onclick = () => {
         const txt = `${convInput.value}${unitFrom.value} = ${convResult.innerText}${unitTo.value}`;
@@ -449,63 +418,56 @@
         closeModal('modalConv');
     };
 
+    // --- 6. GESTÃO DE NOTAS ---
+    function saveNote() {
+        if(!titleInput.value.trim() && !noteBody.value.trim()) return alert("Nota vazia!");
+        savedNotes.unshift({id: Date.now(), title: titleInput.value||'Sem Título', body: noteBody.value});
+        localStorage.setItem('appNotesSafe', JSON.stringify(savedNotes));
+        alert("Guardado!"); titleInput.value = ''; noteBody.value = '';
+    }
 
-    // --- 3. NOTAS LISTA ---
-    let savedNotes = JSON.parse(localStorage.getItem('appNotes') || '[]');
-    
     function renderNotes() {
         const c = document.getElementById('notesContainer');
-        c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888">Vazio</p>';
+        c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888">Sem notas.</p>';
         savedNotes.forEach(n => {
             const div = document.createElement('div');
             div.className = 'note-card';
             div.innerHTML = `
-                <div class="note-card-text" onclick="loadNote(${n.id})"><h4>${n.title}</h4><p>${n.body}</p></div>
+                <div style="flex:1" onclick="loadNote(${n.id})"><h4>${n.title}</h4><p style="font-size:0.8rem;color:#888;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${n.body}</p></div>
                 <button class="btn-trash" onclick="deleteNote(${n.id})">🗑</button>
             `;
             c.appendChild(div);
         });
     }
-    document.getElementById('btnSave').onclick = () => {
-        if(!titleInput.value.trim() && !noteBody.value.trim()) return;
-        savedNotes.unshift({id: Date.now(), title: titleInput.value||'Sem Título', body: noteBody.value});
-        localStorage.setItem('appNotes', JSON.stringify(savedNotes));
-        alert("Guardado!"); titleInput.value = ''; noteBody.value = '';
-    };
+
     window.loadNote = (id) => {
         const n = savedNotes.find(x => x.id === id);
         if(n) { titleInput.value = n.title; noteBody.value = n.body; closeModal('modalList'); }
     };
+    
     window.deleteNote = (id) => {
         if(confirm("Apagar?")) {
             savedNotes = savedNotes.filter(n => n.id !== id);
-            localStorage.setItem('appNotes', JSON.stringify(savedNotes));
+            localStorage.setItem('appNotesSafe', JSON.stringify(savedNotes));
             renderNotes();
         }
     };
 
-
-    // --- MODAIS & SWIPE SYSTEM ---
-    function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalList') renderNotes(); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-    
-    document.getElementById('btnOpenCalc').onclick = () => openModal('modalCalc');
-    document.getElementById('btnOpenConv').onclick = () => openModal('modalConv');
-    document.getElementById('btnList').onclick = () => openModal('modalList');
-
+    // --- 7. GESTOS E FECHO (SWIPE) ---
     document.querySelectorAll('.overlay').forEach(overlay => {
-        overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(overlay.id); });
-        
+        overlay.addEventListener('click', (e) => {
+            if(e.target === overlay) closeModal(overlay.id);
+        });
+
         const sheet = overlay.querySelector('.sheet');
         let startY = 0;
 
+        // Prevenir swipe se estiver a fazer scroll numa lista interna
+        const scrollables = ['historyList', 'notesContainer', 'convType', 'unitFrom', 'unitTo'];
+        
         sheet.addEventListener('touchstart', (e) => {
-            // Se estiver a tocar dentro do histórico ou lista, não inicia o drag da sheet
-            // a não ser que o scroll esteja no topo
-            if (e.target.closest('#historyList, .list-container, #convType, #unitFrom, #unitTo')) {
-               // Permite interação nativa
-               return; 
-            }
+            // Se tocar num elemento de scroll, ignorar swipe da sheet
+            if(e.target.closest('#historyList, .list-container, select')) return;
             if(sheet.scrollTop === 0) startY = e.touches[0].clientY;
         }, {passive: true});
 
@@ -527,6 +489,12 @@
             startY = 0;
         });
     });
+
+    // CORREÇÃO SCROLL HISTÓRICO
+    // Isto força o browser a tratar o scroll da lista como scroll e não como swipe da janela
+    document.getElementById('historyList').addEventListener('touchmove', (e) => {
+        e.stopPropagation();
+    }, {passive: false});
 
 </script>
 </body>
