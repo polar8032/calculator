@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Pro Notes Ultra</title>
+<title>Pro Notes Ultimate Fix</title>
 <style>
+    /* --- VARIÁVEIS VISUAIS --- */
     :root {
         --bg: #f2f2f7; --card: #ffffff; --text: #000000;
         --accent: #007aff; --orange: #ff9500; --red: #ff3b30;
@@ -26,8 +27,9 @@
         display: flex; flex-direction: column;
     }
 
-    /* Editor */
+    /* --- EDITOR --- */
     .editor-area { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 120px 20px; }
+    
     input#titleInput {
         background: transparent; border: none; font-size: 2.2rem; font-weight: 700;
         color: var(--text); outline: none; margin-bottom: 15px; width: 100%;
@@ -37,14 +39,16 @@
         color: var(--text); outline: none; resize: none;
     }
 
-    /* Dock (Menu Inferior) */
+    /* --- BARRA DE BOTÕES (DOCK) - Z-INDEX CORRIGIDO --- */
     .dock-bar {
         position: fixed; bottom: 30px; left: 15px; right: 15px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
         padding: 8px 10px; border-radius: 45px;
         display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid rgba(128,128,128,0.2); 
-        z-index: 999; pointer-events: auto; /* Garante cliques */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25); border: 1px solid rgba(128,128,128,0.2); 
+        /* Z-INDEX MUITO ALTO PARA GARANTIR O CLIQUE */
+        z-index: 9999 !important; 
+        pointer-events: auto;
     }
     .dock-btn {
         width: 50px; height: 50px; border-radius: 50%; border: none;
@@ -55,9 +59,10 @@
     .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.15); }
     .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
 
-    /* Sheets (Janelas) */
+    /* --- JANELAS (SHEETS) --- */
     .overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5); 
+        z-index: 1000; /* Inferior à Dock */
         opacity: 0; pointer-events: none; transition: opacity 0.3s;
         display: flex; flex-direction: column; justify-content: flex-end;
     }
@@ -66,22 +71,43 @@
     .sheet {
         background: var(--sheet-bg); border-radius: 30px 30px 0 0;
         transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-        display: flex; flex-direction: column; max-height: 90vh;
+        display: flex; flex-direction: column; max-height: 90vh; width: 100%;
         backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-        border-top: 1px solid rgba(255,255,255,0.1); width: 100%;
+        border-top: 1px solid rgba(255,255,255,0.1);
     }
     .overlay.active .sheet { transform: translateY(0); }
     
     .handle-area { width: 100%; padding: 15px 0; display: flex; justify-content: center; flex-shrink: 0; }
     .handle-bar { width: 40px; height: 5px; background: var(--border); border-radius: 10px; opacity: 0.8; }
 
-    /* Calculadora */
-    .calc-container { padding: 0 20px 40px 20px; display: flex; flex-direction: column; align-items: center; }
+    /* --- LAYOUTS INTERNOS --- */
+    .calc-container, .conv-container, .list-container { padding: 0 20px 40px 20px; display: flex; flex-direction: column; }
+    .list-container { overflow-y: auto; height: 70vh; }
+    
+    /* Calculadora Display & Botões */
     #calcResult {
         width: 100%; text-align: right; font-size: 3.5rem; border: none;
         background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0 0 10px 0;
     }
-    
+    .calc-tools { width: 100%; display: flex; justify-content: space-between; margin-bottom: 15px; }
+    .tool-btn { background: none; border: none; font-weight: 600; font-size: 0.9rem; color: var(--accent); padding: 5px; }
+
+    /* Botões da Calculadora */
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 380px; align-self: center; }
+    .key-btn {
+        aspect-ratio: 1/1; width: 100%; max-width: 72px; 
+        border-radius: 50%; border: none; font-size: 1.6rem;
+        background: var(--btn-grey); color: var(--btn-text);
+        display: flex; align-items: center; justify-content: center; margin: 0 auto; 
+    }
+    .key-btn.orange { background: var(--orange); color: #fff; }
+    .key-btn.wide { grid-column: span 2; width: 100%; max-width: none; aspect-ratio: auto; height: 72px; border-radius: 40px; justify-content: flex-start; padding-left: 30px; }
+
+    /* Científica */
+    .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; }
+    .sci-row.show { display: grid; }
+    .sci-btn { height: 40px; border-radius: 10px; background: var(--btn-grey); color: var(--text); font-weight: 600; border: none;}
+
     /* Histórico */
     .history-dropdown {
         width: 100%; background: rgba(128,128,128,0.08); border-radius: 15px;
@@ -89,50 +115,18 @@
         margin-bottom: 10px; display: flex; flex-direction: column;
     }
     .history-dropdown.open { max-height: 200px; border: 1px solid var(--border); }
-    .hist-header { 
-        display: flex; justify-content: space-between; align-items: center; 
-        padding: 8px 12px; background: rgba(128,128,128,0.05); border-bottom: 1px solid var(--border);
-    }
-    .hist-list-content { padding: 5px; overflow-y: auto; flex: 1; overscroll-behavior: contain; }
-    .hist-entry { text-align: right; padding: 8px; border-bottom: 1px solid rgba(128,128,128,0.1); font-size: 1.1rem; color: var(--text); }
-
-    /* Botões Calc */
-    .calc-tools { width: 100%; display: flex; justify-content: space-between; margin-bottom: 15px; }
-    .tool-btn { background: none; border: none; font-weight: 600; font-size: 0.95rem; color: var(--accent); padding: 5px; }
-    
-    .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; }
-    .sci-row.show { display: grid; }
-    .sci-btn { height: 40px; border-radius: 10px; background: var(--btn-grey); color: var(--text); font-weight: 600; border: none;}
-
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 380px; }
-    .key-btn {
-        aspect-ratio: 1/1; width: 100%; max-width: 72px; 
-        border-radius: 50%; border: none; font-size: 1.6rem;
-        background: var(--btn-grey); color: var(--btn-text);
-        display: flex; align-items: center; justify-content: center; margin: 0 auto; 
-    }
-    .key-btn:active { filter: brightness(0.85); }
-    .key-btn.orange { background: var(--orange); color: #fff; }
-    .key-btn.wide { grid-column: span 2; width: 100%; max-width: none; aspect-ratio: auto; height: 72px; border-radius: 40px; justify-content: flex-start; padding-left: 30px; }
+    .hist-header { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border); }
+    .hist-list-content { padding: 5px; overflow-y: auto; flex: 1; }
+    .hist-entry { text-align: right; padding: 8px; border-bottom: 1px solid rgba(128,128,128,0.1); }
 
     /* Conversor */
-    .conv-container { padding: 0 25px 40px 25px; width: 100%; }
-    .conv-input-group {
-        display: flex; gap: 10px; align-items: center; margin-bottom: 15px;
-        background: var(--card); padding: 5px; border-radius: 12px; border: 1px solid var(--border);
-    }
+    .conv-input-group { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; background: var(--card); padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
     .conv-input { flex: 1; border: none; background: transparent; font-size: 1.5rem; padding: 10px; color: var(--text); outline: none; }
-    .conv-select { background: var(--btn-grey); border: none; color: var(--text); padding: 8px; border-radius: 8px; font-size: 1rem; max-width: 100px; }
+    .conv-select { background: var(--btn-grey); border: none; color: var(--text); padding: 8px; border-radius: 8px; }
     .btn-full { width: 100%; padding: 15px; border-radius: 15px; background: var(--accent); color: #fff; font-size: 1.1rem; border: none; margin-top: 20px;}
 
-    /* Lista Notas */
-    .list-container { padding: 0 20px 40px 20px; overflow-y: auto; height: 70vh; width: 100%; }
-    .note-card {
-        background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px;
-        display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .btn-trash { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; width: 35px; height: 35px; border-radius: 50%; margin-left: 10px; }
+    /* Lista */
+    .note-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
 </style>
 </head>
@@ -155,6 +149,7 @@
         <div class="sheet">
             <div class="handle-area"><div class="handle-bar"></div></div>
             <div class="calc-container">
+                
                 <div class="history-dropdown" id="historyDropdown">
                     <div class="hist-header">
                         <span style="font-weight:600;color:var(--text-sec)">Histórico</span>
@@ -214,28 +209,22 @@
             <div class="handle-area"><div class="handle-bar"></div></div>
             <div class="conv-container">
                 <h2 style="margin:0 0 20px 0; text-align:center">Conversor</h2>
-                
                 <div style="margin-bottom:15px">
-                    <label style="color:#888;font-size:0.9rem">TIPO</label>
-                    <select id="convType" class="conv-select" style="width:100%;max-width:100%;margin-top:5px;padding:10px">
+                    <select id="convType" class="conv-select" style="width:100%;max-width:100%;padding:10px">
                         <option value="length">📏 Distância</option>
                         <option value="weight">⚖️ Peso</option>
                         <option value="volume">💧 Volume</option>
                     </select>
                 </div>
-
                 <div class="conv-input-group">
                     <input type="number" id="convInput" class="conv-input" value="1">
                     <select id="unitFrom" class="conv-select"></select>
                 </div>
-
                 <div style="text-align:center;font-size:1.5rem;color:var(--accent)">⬇</div>
-
                 <div class="conv-input-group">
                     <div id="convResult" class="conv-input" style="display:flex;align-items:center">...</div>
                     <select id="unitTo" class="conv-select"></select>
                 </div>
-
                 <button class="btn-full" id="btnPasteConv">Inserir na Nota</button>
             </div>
         </div>
@@ -252,250 +241,218 @@
     </div>
 
 <script>
-    // --- 1. CONFIGURAÇÃO INICIAL (SEGURANÇA CONTRA ERROS) ---
-    // Definimos os elementos e eventos básicos PRIMEIRO para garantir que os botões funcionam
-    
-    // Elementos UI
-    const titleInput = document.getElementById('titleInput');
-    const noteBody = document.getElementById('noteBody');
-    const display = document.getElementById('calcResult');
-    
-    // Arrays de Dados (com proteção)
-    let savedNotes = [];
-    try {
-        savedNotes = JSON.parse(localStorage.getItem('appNotesSafe') || '[]');
-    } catch (e) {
-        console.log("Erro ao carregar notas, a reiniciar array.");
-        savedNotes = [];
-    }
+    // --- SEGURANÇA MÁXIMA ---
+    // Envolvemos tudo em 'load' para garantir que o HTML existe
+    window.addEventListener('load', function() {
+        console.log("App Carregada. A iniciar scripts...");
 
-    let calcHistory = [];
-
-    // --- 2. ATIVAÇÃO DOS BOTÕES (PRIORIDADE MÁXIMA) ---
-    
-    // Funções de Modal
-    function openModal(id) { 
-        document.getElementById(id).classList.add('active'); 
-        if(id === 'modalList') renderNotes();
-    }
-    function closeModal(id) { 
-        document.getElementById(id).classList.remove('active'); 
-    }
-
-    // Atribuir cliques
-    document.getElementById('btnTheme').onclick = () => {
-        document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light';
-    };
-    document.getElementById('btnList').onclick = () => openModal('modalList');
-    document.getElementById('btnOpenCalc').onclick = () => openModal('modalCalc');
-    document.getElementById('btnOpenConv').onclick = () => openModal('modalConv');
-    document.getElementById('btnSave').onclick = () => saveNote();
-    document.getElementById('btnClear').onclick = () => {
-        if(confirm("Limpar editor?")) { titleInput.value = ''; noteBody.value = ''; }
-    };
-
-    // --- 3. EDITOR & AUTO-CALC ---
-    noteBody.addEventListener('input', (e) => {
-        if (e.data === '=' || e.target.value.endsWith('=')) {
-            const val = e.target.value;
-            const match = val.match(/(?:^|[\n\s])([0-9.,+\-*/()]+)=$/);
-            if (match) {
-                try {
-                    let result = eval(match[1].replace(/,/g, '.'));
-                    if(!Number.isInteger(result)) result = parseFloat(result.toFixed(2));
-                    noteBody.value = val + result;
-                } catch {}
-            }
-        }
-    });
-
-    // --- 4. CALCULADORA ---
-    function ins(v) {
-        if(display.value === '0' && !isNaN(v)) display.value = '';
-        if(display.value === 'Erro') display.value = '';
-        display.value += v;
-    }
-    function cls() { display.value = '0'; }
-    function del() { display.value = display.value.length > 1 ? display.value.slice(0, -1) : '0'; }
-
-    function calculate() {
-        try {
-            let expr = display.value.replace(/×/g, '*').replace(/÷/g, '/');
-            let result;
-            if (expr.includes('%')) {
-                // Simplificação para estabilidade
-                result = eval(expr.replace(/([0-9.]+)%/g, '($1/100)'));
-                // Se a regex falhar em casos complexos (5+10%), usar try catch interno ou lógica expandida
-                const percentPattern = /([0-9.]+)[\+\-]([0-9.]+)%/;
-                if (percentPattern.test(expr)) {
-                    let op = expr.includes('+') ? '+' : '-';
-                    let [base, perc] = expr.split(op);
-                    let val = parseFloat(base) * (parseFloat(perc)/100);
-                    result = op === '+' ? parseFloat(base) + val : parseFloat(base) - val;
-                }
+        // Função para atribuir cliques de forma segura (se um falhar, os outros funcionam)
+        function safeBind(id, func) {
+            const el = document.getElementById(id);
+            if(el) {
+                el.onclick = function(e) {
+                    try { func(e); } 
+                    catch(err) { console.error("Erro no botão " + id, err); alert("Erro na função: " + id); }
+                };
             } else {
-                result = eval(expr);
+                console.warn("Botão não encontrado: " + id);
             }
-            if (!Number.isInteger(result)) result = parseFloat(result.toFixed(4));
-            addToHistory(display.value, result);
-            display.value = result;
-        } catch { display.value = 'Erro'; }
-    }
-
-    function sci(func) {
-        try {
-            let val = eval(display.value);
-            let res = func==='sqrt'?Math.sqrt(val):func==='pow'?Math.pow(val,2):Math[func](val);
-            if (!Number.isInteger(res)) res = parseFloat(res.toFixed(6));
-            addToHistory(`${func}(${val})`, res);
-            display.value = res;
-        } catch { display.value = 'Erro'; }
-    }
-
-    // Histórico
-    function addToHistory(op, res) {
-        calcHistory.unshift(`${op} = ${res}`);
-        renderHistory();
-    }
-    function renderHistory() {
-        document.getElementById('historyList').innerHTML = calcHistory.map(h => `<div class="hist-entry">${h}</div>`).join('');
-    }
-    
-    // Listeners Internos Calc
-    document.getElementById('btnClearHist').onclick = (e) => { e.stopPropagation(); calcHistory = []; renderHistory(); };
-    document.getElementById('btnShowHist').onclick = (e) => { e.stopPropagation(); document.getElementById('historyDropdown').classList.toggle('open'); };
-    document.getElementById('btnToggleSci').onclick = (e) => { e.stopPropagation(); document.getElementById('sciRow').classList.toggle('show'); };
-    document.getElementById('btnPaste').onclick = (e) => {
-        e.stopPropagation();
-        if(display.value !== 'Erro') noteBody.value += (noteBody.value ? '\n' : '') + display.value;
-    };
-
-    // --- 5. CONVERSOR ---
-    const units = {
-        length: { u: { m:1, km:1000, cm:0.01, mm:0.001, mi:1609.34, ft:0.3048, in:0.0254 } },
-        weight: { u: { kg:1, g:0.001, lb:0.453592, oz:0.0283495 } },
-        volume: { u: { l:1, ml:0.001, gal:3.78541 } }
-    };
-    
-    const convType = document.getElementById('convType');
-    const unitFrom = document.getElementById('unitFrom');
-    const unitTo = document.getElementById('unitTo');
-    const convInput = document.getElementById('convInput');
-    const convResult = document.getElementById('convResult');
-
-    function popUnits() {
-        const type = convType.value;
-        const opts = Object.keys(units[type].u).map(k => `<option value="${k}">${k}</option>`).join('');
-        unitFrom.innerHTML = opts;
-        unitTo.innerHTML = opts;
-        unitTo.selectedIndex = 1;
-        doConv();
-    }
-
-    function doConv() {
-        const type = convType.value;
-        const val = parseFloat(convInput.value);
-        if(isNaN(val)) { convResult.innerText = '---'; return; }
-        const fromFactor = units[type].u[unitFrom.value];
-        const toFactor = units[type].u[unitTo.value];
-        const res = (val * fromFactor) / toFactor;
-        let txt = res < 0.001 ? res.toExponential(4) : parseFloat(res.toFixed(4));
-        convResult.innerText = txt;
-    }
-
-    // Eventos Conversor
-    convType.onchange = popUnits;
-    unitFrom.onchange = doConv;
-    unitTo.onchange = doConv;
-    convInput.oninput = doConv;
-    
-    // Iniciar Conversor (com segurança)
-    setTimeout(popUnits, 100); 
-
-    document.getElementById('btnPasteConv').onclick = () => {
-        const txt = `${convInput.value}${unitFrom.value} = ${convResult.innerText}${unitTo.value}`;
-        noteBody.value += (noteBody.value ? '\n' : '') + txt;
-        closeModal('modalConv');
-    };
-
-    // --- 6. GESTÃO DE NOTAS ---
-    function saveNote() {
-        if(!titleInput.value.trim() && !noteBody.value.trim()) return alert("Nota vazia!");
-        savedNotes.unshift({id: Date.now(), title: titleInput.value||'Sem Título', body: noteBody.value});
-        localStorage.setItem('appNotesSafe', JSON.stringify(savedNotes));
-        alert("Guardado!"); titleInput.value = ''; noteBody.value = '';
-    }
-
-    function renderNotes() {
-        const c = document.getElementById('notesContainer');
-        c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888">Sem notas.</p>';
-        savedNotes.forEach(n => {
-            const div = document.createElement('div');
-            div.className = 'note-card';
-            div.innerHTML = `
-                <div style="flex:1" onclick="loadNote(${n.id})"><h4>${n.title}</h4><p style="font-size:0.8rem;color:#888;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${n.body}</p></div>
-                <button class="btn-trash" onclick="deleteNote(${n.id})">🗑</button>
-            `;
-            c.appendChild(div);
-        });
-    }
-
-    window.loadNote = (id) => {
-        const n = savedNotes.find(x => x.id === id);
-        if(n) { titleInput.value = n.title; noteBody.value = n.body; closeModal('modalList'); }
-    };
-    
-    window.deleteNote = (id) => {
-        if(confirm("Apagar?")) {
-            savedNotes = savedNotes.filter(n => n.id !== id);
-            localStorage.setItem('appNotesSafe', JSON.stringify(savedNotes));
-            renderNotes();
         }
-    };
 
-    // --- 7. GESTOS E FECHO (SWIPE) ---
-    document.querySelectorAll('.overlay').forEach(overlay => {
-        overlay.addEventListener('click', (e) => {
-            if(e.target === overlay) closeModal(overlay.id);
+        // --- DADOS ---
+        let savedNotes = [];
+        try { savedNotes = JSON.parse(localStorage.getItem('appNotesSafe') || '[]'); } catch(e) { savedNotes=[]; }
+        let calcHistory = [];
+
+        // --- FUNÇÕES DE INTERFACE ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            if(id === 'modalList') renderNotes();
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // --- 1. CONFIGURAR BOTÕES PRINCIPAIS (DOCK) ---
+        safeBind('btnTheme', () => { 
+            document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light'; 
         });
 
-        const sheet = overlay.querySelector('.sheet');
-        let startY = 0;
-
-        // Prevenir swipe se estiver a fazer scroll numa lista interna
-        const scrollables = ['historyList', 'notesContainer', 'convType', 'unitFrom', 'unitTo'];
+        safeBind('btnList', () => openModal('modalList'));
         
-        sheet.addEventListener('touchstart', (e) => {
-            // Se tocar num elemento de scroll, ignorar swipe da sheet
-            if(e.target.closest('#historyList, .list-container, select')) return;
-            if(sheet.scrollTop === 0) startY = e.touches[0].clientY;
-        }, {passive: true});
-
-        sheet.addEventListener('touchmove', (e) => {
-            if(!startY) return;
-            const diff = e.touches[0].clientY - startY;
-            if(diff > 0) { 
-                if(e.cancelable) e.preventDefault(); 
-                sheet.style.transform = `translateY(${diff}px)`; 
-                sheet.style.transition = 'none';
-            }
-        }, {passive: false});
-
-        sheet.addEventListener('touchend', (e) => {
-            if(!startY) return;
-            sheet.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
-            if((e.changedTouches[0].clientY - startY) > 120) closeModal(overlay.id);
-            else sheet.style.transform = '';
-            startY = 0;
+        safeBind('btnOpenCalc', () => openModal('modalCalc'));
+        
+        safeBind('btnOpenConv', () => {
+            openModal('modalConv');
+            setTimeout(popUnits, 100); // Inicia conversor com ligeiro atraso para garantir UI
         });
-    });
 
-    // CORREÇÃO SCROLL HISTÓRICO
-    // Isto força o browser a tratar o scroll da lista como scroll e não como swipe da janela
-    document.getElementById('historyList').addEventListener('touchmove', (e) => {
-        e.stopPropagation();
-    }, {passive: false});
+        safeBind('btnSave', () => {
+            const title = document.getElementById('titleInput').value;
+            const body = document.getElementById('noteBody').value;
+            if(!title.trim() && !body.trim()) return alert("Nota vazia!");
+            savedNotes.unshift({id: Date.now(), title: title||'Sem Título', body: body});
+            localStorage.setItem('appNotesSafe', JSON.stringify(savedNotes));
+            alert("Guardado!");
+            document.getElementById('titleInput').value = ''; 
+            document.getElementById('noteBody').value = '';
+        });
 
+        // --- 2. CALCULADORA ---
+        const display = document.getElementById('calcResult');
+        
+        // Expor funções globais para o HTML (onclick="..." no HTML)
+        window.ins = function(v) {
+            if(display.value === '0' && !isNaN(v)) display.value = '';
+            if(display.value === 'Erro') display.value = '';
+            display.value += v;
+        };
+        window.cls = function() { display.value = '0'; };
+        window.del = function() { display.value = display.value.length > 1 ? display.value.slice(0, -1) : '0'; };
+        
+        window.calculate = function() {
+            try {
+                let expr = display.value.replace(/×/g, '*').replace(/÷/g, '/');
+                let result;
+                if(expr.includes('%')) {
+                   result = eval(expr.replace(/([0-9.]+)%/g, '($1/100)'));
+                } else {
+                   result = eval(expr); 
+                }
+                if (!Number.isInteger(result)) result = parseFloat(result.toFixed(4));
+                calcHistory.unshift(display.value + " = " + result);
+                renderHistory();
+                display.value = result;
+            } catch { display.value = 'Erro'; }
+        };
+
+        window.sci = function(func) {
+            try {
+                let val = eval(display.value);
+                let res = func==='sqrt'?Math.sqrt(val):Math[func](val);
+                if (!Number.isInteger(res)) res = parseFloat(res.toFixed(6));
+                display.value = res;
+            } catch { display.value = 'Erro'; }
+        };
+
+        function renderHistory() {
+            document.getElementById('historyList').innerHTML = calcHistory.map(h => `<div class="hist-entry">${h}</div>`).join('');
+        }
+
+        safeBind('btnClearHist', (e) => { e.stopPropagation(); calcHistory = []; renderHistory(); });
+        safeBind('btnShowHist', (e) => { e.stopPropagation(); document.getElementById('historyDropdown').classList.toggle('open'); });
+        safeBind('btnToggleSci', (e) => { e.stopPropagation(); document.getElementById('sciRow').classList.toggle('show'); });
+        safeBind('btnPaste', (e) => {
+            e.stopPropagation();
+            if(display.value !== 'Erro') document.getElementById('noteBody').value += display.value;
+        });
+
+        // --- 3. CONVERSOR ---
+        const units = {
+            length: { u: { m:1, km:1000, cm:0.01, mm:0.001, mi:1609.34, ft:0.3048, in:0.0254 } },
+            weight: { u: { kg:1, g:0.001, lb:0.453592, oz:0.0283495 } },
+            volume: { u: { l:1, ml:0.001, gal:3.78541 } }
+        };
+        const convType = document.getElementById('convType');
+        const unitFrom = document.getElementById('unitFrom');
+        const unitTo = document.getElementById('unitTo');
+        const convInput = document.getElementById('convInput');
+        
+        window.popUnits = function() {
+            const type = convType.value;
+            if(!units[type]) return; 
+            const opts = Object.keys(units[type].u).map(k => `<option value="${k}">${k}</option>`).join('');
+            unitFrom.innerHTML = opts;
+            unitTo.innerHTML = opts;
+            unitTo.selectedIndex = 1;
+            window.doConv();
+        };
+
+        window.doConv = function() {
+            const type = convType.value;
+            const val = parseFloat(convInput.value);
+            if(isNaN(val) || !units[type]) return;
+            const fromF = units[type].u[unitFrom.value];
+            const toF = units[type].u[unitTo.value];
+            const res = (val * fromF) / toF;
+            document.getElementById('convResult').innerText = parseFloat(res.toFixed(4));
+        };
+
+        convType.onchange = window.popUnits;
+        unitFrom.onchange = window.doConv;
+        unitTo.onchange = window.doConv;
+        convInput.oninput = window.doConv;
+
+        safeBind('btnPasteConv', () => {
+            const txt = `${convInput.value}${unitFrom.value} = ${document.getElementById('convResult').innerText}${unitTo.value}`;
+            document.getElementById('noteBody').value += (document.getElementById('noteBody').value ? '\n' : '') + txt;
+            closeModal('modalConv');
+        });
+
+        // --- 4. LISTA DE NOTAS ---
+        function renderNotes() {
+            const c = document.getElementById('notesContainer');
+            c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888">Vazio</p>';
+            savedNotes.forEach(n => {
+                const div = document.createElement('div');
+                div.className = 'note-card';
+                div.innerHTML = `<div style="flex:1" onclick="loadNote(${n.id})"><h4>${n.title}</h4></div><button class="btn-trash" onclick="delNote(${n.id})">🗑</button>`;
+                c.appendChild(div);
+            });
+        }
+        
+        window.loadNote = function(id) {
+            const n = savedNotes.find(x => x.id === id);
+            if(n) { 
+                document.getElementById('titleInput').value = n.title; 
+                document.getElementById('noteBody').value = n.body; 
+                closeModal('modalList'); 
+            }
+        };
+
+        window.delNote = function(id) {
+            if(confirm("Apagar?")) {
+                savedNotes = savedNotes.filter(n => n.id !== id);
+                localStorage.setItem('appNotesSafe', JSON.stringify(savedNotes));
+                renderNotes();
+            }
+        };
+
+        // --- 5. SWIPE E FECHO ---
+        document.querySelectorAll('.overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(overlay.id); });
+            
+            const sheet = overlay.querySelector('.sheet');
+            let startY = 0;
+            sheet.addEventListener('touchstart', (e) => {
+                if(e.target.closest('#historyList, .list-container, select')) return;
+                if(sheet.scrollTop <= 0) startY = e.touches[0].clientY;
+            }, {passive: true});
+
+            sheet.addEventListener('touchmove', (e) => {
+                if(!startY) return;
+                const diff = e.touches[0].clientY - startY;
+                if(diff > 0) { 
+                    if(e.cancelable) e.preventDefault(); 
+                    sheet.style.transform = `translateY(${diff}px)`; 
+                    sheet.style.transition = 'none';
+                }
+            }, {passive: false});
+
+            sheet.addEventListener('touchend', (e) => {
+                if(!startY) return;
+                sheet.style.transition = 'transform 0.3s';
+                if((e.changedTouches[0].clientY - startY) > 120) closeModal(overlay.id);
+                else sheet.style.transform = '';
+                startY = 0;
+            });
+        });
+
+        // Impedir propagação de scroll no histórico
+        const histList = document.getElementById('historyList');
+        if(histList) histList.addEventListener('touchmove', (e) => e.stopPropagation(), {passive: false});
+
+    }); // Fim do window.onload
 </script>
 </body>
 </html>
