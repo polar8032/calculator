@@ -4,455 +4,188 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pro Notes Ultimate Fix</title>
+
 <style>
-    /* --- VARIÁVEIS VISUAIS --- */
-    :root {
-        --bg: #f2f2f7; --card: #ffffff; --text: #000000;
-        --accent: #007aff; --orange: #ff9500; --red: #ff3b30;
-        --sheet-bg: rgba(245, 245, 247, 0.98);
-        --btn-grey: #e5e5ea; --btn-text: #000;
-        --border: #c6c6c8; --blur: blur(20px);
-    }
-    [data-theme="dark"] {
-        --bg: #000000; --card: #1c1c1e; --text: #ffffff;
-        --sheet-bg: rgba(30, 30, 30, 0.98);
-        --btn-grey: #3a3a3c; --btn-text: #fff;
-        --border: #38383a;
-    }
+:root {
+    --bg:#f2f2f7;--card:#fff;--text:#000;
+    --accent:#007aff;--orange:#ff9500;--red:#ff3b30;
+    --sheet-bg:rgba(245,245,247,.98);
+    --btn-grey:#e5e5ea;--btn-text:#000;
+    --border:#c6c6c8;--blur:blur(20px);
+}
+[data-theme="dark"] {
+    --bg:#000;--card:#1c1c1e;--text:#fff;
+    --sheet-bg:rgba(30,30,30,.98);
+    --btn-grey:#3a3a3c;--btn-text:#fff;
+    --border:#38383a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
+    background:var(--bg);color:var(--text);height:100vh;overflow:hidden;
+    display:flex;flex-direction:column
+}
+.editor-area{flex:1;padding:20px 20px 120px}
+#titleInput{border:none;font-size:2.2rem;font-weight:700;background:none;color:var(--text);outline:none}
+#noteBody{flex:1;border:none;background:none;font-size:1.2rem;color:var(--text);outline:none;resize:none}
 
-    * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    body {
-        margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-        background: var(--bg); color: var(--text); height: 100vh; overflow: hidden;
-        display: flex; flex-direction: column;
-    }
+/* DOCK */
+.dock-bar{
+    position:fixed;bottom:30px;left:15px;right:15px;
+    background:var(--sheet-bg);backdrop-filter:var(--blur);
+    padding:8px;border-radius:45px;
+    display:flex;justify-content:space-between;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+    z-index:9000
+}
+.dock-btn{
+    width:50px;height:50px;border-radius:50%;
+    border:none;background:none;font-size:1.5rem;
+    color:var(--accent)
+}
+.dock-btn.main-action{background:var(--accent);color:#fff}
 
-    /* --- EDITOR --- */
-    .editor-area { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 120px 20px; }
-    
-    input#titleInput {
-        background: transparent; border: none; font-size: 2.2rem; font-weight: 700;
-        color: var(--text); outline: none; margin-bottom: 15px; width: 100%;
-    }
-    textarea#noteBody {
-        flex: 1; background: transparent; border: none; font-size: 1.2rem; line-height: 1.6;
-        color: var(--text); outline: none; resize: none;
-    }
+/* OVERLAYS */
+.overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.5);
+    display:flex;justify-content:flex-end;
+    opacity:0;pointer-events:none;
+    transition:.3s;z-index:10000
+}
+.overlay.active{opacity:1;pointer-events:auto}
+.sheet{
+    background:var(--sheet-bg);
+    width:100%;border-radius:30px 30px 0 0;
+    transform:translateY(100%);
+    transition:.35s cubic-bezier(.2,.9,.3,1);
+    max-height:90vh;overflow:hidden
+}
+.overlay.active .sheet{transform:none}
+.handle-area{padding:15px;display:flex;justify-content:center}
+.handle-bar{width:40px;height:5px;background:var(--border);border-radius:10px}
 
-    /* --- BARRA DE BOTÕES (DOCK) - Z-INDEX CORRIGIDO --- */
-    .dock-bar {
-        position: fixed; bottom: 30px; left: 15px; right: 15px;
-        background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-        padding: 8px 10px; border-radius: 45px;
-        display: flex; justify-content: space-between; align-items: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.25); border: 1px solid rgba(128,128,128,0.2); 
-        /* Z-INDEX MUITO ALTO PARA GARANTIR O CLIQUE */
-        z-index: 9999 !important; 
-        pointer-events: auto;
-    }
-    .dock-btn {
-        width: 50px; height: 50px; border-radius: 50%; border: none;
-        background: transparent; color: var(--accent); font-size: 1.5rem;
-        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        transition: transform 0.1s; cursor: pointer;
-    }
-    .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.15); }
-    .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
+/* CALC */
+.calc-container{padding:0 20px 40px}
+#calcResult{
+    font-size:3.5rem;border:none;background:none;
+    color:var(--text);width:100%;text-align:right
+}
+.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.key-btn{
+    aspect-ratio:1;border:none;border-radius:50%;
+    font-size:1.5rem;background:var(--btn-grey)
+}
+.key-btn.orange{background:var(--orange);color:#fff}
+.key-btn.wide{grid-column:span 2;border-radius:40px}
 
-    /* --- JANELAS (SHEETS) --- */
-    .overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.5); 
-        z-index: 1000; /* Inferior à Dock */
-        opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        display: flex; flex-direction: column; justify-content: flex-end;
-    }
-    .overlay.active { opacity: 1; pointer-events: auto; }
-    
-    .sheet {
-        background: var(--sheet-bg); border-radius: 30px 30px 0 0;
-        transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-        display: flex; flex-direction: column; max-height: 90vh; width: 100%;
-        backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-        border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    .overlay.active .sheet { transform: translateY(0); }
-    
-    .handle-area { width: 100%; padding: 15px 0; display: flex; justify-content: center; flex-shrink: 0; }
-    .handle-bar { width: 40px; height: 5px; background: var(--border); border-radius: 10px; opacity: 0.8; }
-
-    /* --- LAYOUTS INTERNOS --- */
-    .calc-container, .conv-container, .list-container { padding: 0 20px 40px 20px; display: flex; flex-direction: column; }
-    .list-container { overflow-y: auto; height: 70vh; }
-    
-    /* Calculadora Display & Botões */
-    #calcResult {
-        width: 100%; text-align: right; font-size: 3.5rem; border: none;
-        background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0 0 10px 0;
-    }
-    .calc-tools { width: 100%; display: flex; justify-content: space-between; margin-bottom: 15px; }
-    .tool-btn { background: none; border: none; font-weight: 600; font-size: 0.9rem; color: var(--accent); padding: 5px; }
-
-    /* Botões da Calculadora */
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 380px; align-self: center; }
-    .key-btn {
-        aspect-ratio: 1/1; width: 100%; max-width: 72px; 
-        border-radius: 50%; border: none; font-size: 1.6rem;
-        background: var(--btn-grey); color: var(--btn-text);
-        display: flex; align-items: center; justify-content: center; margin: 0 auto; 
-    }
-    .key-btn.orange { background: var(--orange); color: #fff; }
-    .key-btn.wide { grid-column: span 2; width: 100%; max-width: none; aspect-ratio: auto; height: 72px; border-radius: 40px; justify-content: flex-start; padding-left: 30px; }
-
-    /* Científica */
-    .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; }
-    .sci-row.show { display: grid; }
-    .sci-btn { height: 40px; border-radius: 10px; background: var(--btn-grey); color: var(--text); font-weight: 600; border: none;}
-
-    /* Histórico */
-    .history-dropdown {
-        width: 100%; background: rgba(128,128,128,0.08); border-radius: 15px;
-        max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
-        margin-bottom: 10px; display: flex; flex-direction: column;
-    }
-    .history-dropdown.open { max-height: 200px; border: 1px solid var(--border); }
-    .hist-header { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid var(--border); }
-    .hist-list-content { padding: 5px; overflow-y: auto; flex: 1; }
-    .hist-entry { text-align: right; padding: 8px; border-bottom: 1px solid rgba(128,128,128,0.1); }
-
-    /* Conversor */
-    .conv-input-group { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; background: var(--card); padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
-    .conv-input { flex: 1; border: none; background: transparent; font-size: 1.5rem; padding: 10px; color: var(--text); outline: none; }
-    .conv-select { background: var(--btn-grey); border: none; color: var(--text); padding: 8px; border-radius: 8px; }
-    .btn-full { width: 100%; padding: 15px; border-radius: 15px; background: var(--accent); color: #fff; font-size: 1.1rem; border: none; margin-top: 20px;}
-
-    /* Lista */
-    .note-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-
+/* LIST */
+.list-container{padding:20px;height:70vh;overflow:auto}
+.note-card{
+    background:var(--card);padding:15px;border-radius:12px;
+    margin-bottom:10px;display:flex;justify-content:space-between
+}
 </style>
 </head>
+
 <body data-theme="light">
 
-    <div class="editor-area">
-        <input type="text" id="titleInput" placeholder="Título">
-        <textarea id="noteBody" placeholder="Escreve aqui... (ex: 25*4=)"></textarea>
-    </div>
+<div class="editor-area">
+    <input id="titleInput" placeholder="Título">
+    <textarea id="noteBody" placeholder="Escreve aqui..."></textarea>
+</div>
 
-    <div class="dock-bar">
-        <button class="dock-btn" id="btnTheme">◑</button>
-        <button class="dock-btn" id="btnList">☰</button>
-        <button class="dock-btn main-action" id="btnOpenCalc">🧮</button>
-        <button class="dock-btn" id="btnOpenConv" style="font-size:1.8rem">⇄</button>
-        <button class="dock-btn" id="btnSave">💾</button>
-    </div>
+<div class="dock-bar">
+    <button id="btnTheme" class="dock-btn">◑</button>
+    <button id="btnList" class="dock-btn">☰</button>
+    <button id="btnOpenCalc" class="dock-btn main-action">🧮</button>
+    <button id="btnOpenConv" class="dock-btn">⇄</button>
+    <button id="btnSave" class="dock-btn">💾</button>
+</div>
 
-    <div class="overlay" id="modalCalc">
-        <div class="sheet">
-            <div class="handle-area"><div class="handle-bar"></div></div>
-            <div class="calc-container">
-                
-                <div class="history-dropdown" id="historyDropdown">
-                    <div class="hist-header">
-                        <span style="font-weight:600;color:var(--text-sec)">Histórico</span>
-                        <button style="border:none;background:none;color:var(--red)" id="btnClearHist">Limpar</button>
-                    </div>
-                    <div class="hist-list-content" id="historyList"></div>
-                </div>
+<!-- CALC -->
+<div id="modalCalc" class="overlay">
+<div class="sheet">
+<div class="handle-area"><div class="handle-bar"></div></div>
+<div class="calc-container">
+<input id="calcResult" value="0" readonly>
+<div class="keypad">
+<button class="key-btn" onclick="cls()">AC</button>
+<button class="key-btn" onclick="del()">⌫</button>
+<button class="key-btn" onclick="ins('%')">%</button>
+<button class="key-btn orange" onclick="ins('/')">÷</button>
+<button class="key-btn" onclick="ins('7')">7</button>
+<button class="key-btn" onclick="ins('8')">8</button>
+<button class="key-btn" onclick="ins('9')">9</button>
+<button class="key-btn orange" onclick="ins('*')">×</button>
+<button class="key-btn" onclick="ins('4')">4</button>
+<button class="key-btn" onclick="ins('5')">5</button>
+<button class="key-btn" onclick="ins('6')">6</button>
+<button class="key-btn orange" onclick="ins('-')">−</button>
+<button class="key-btn" onclick="ins('1')">1</button>
+<button class="key-btn" onclick="ins('2')">2</button>
+<button class="key-btn" onclick="ins('3')">3</button>
+<button class="key-btn orange" onclick="ins('+')">+</button>
+<button class="key-btn wide" onclick="ins('0')">0</button>
+<button class="key-btn" onclick="ins('.')">.</button>
+<button class="key-btn orange" onclick="calculate()">=</button>
+</div>
+</div>
+</div>
+</div>
 
-                <input id="calcResult" readonly value="0">
-
-                <div class="calc-tools">
-                    <button class="tool-btn" id="btnShowHist">🕒 Histórico</button>
-                    <button class="tool-btn" id="btnToggleSci">Científica</button>
-                    <button class="tool-btn" style="color:var(--orange)" id="btnPaste">Inserir</button>
-                </div>
-
-                <div class="sci-row" id="sciRow">
-                    <button class="sci-btn" onclick="sci('sin')">sin</button>
-                    <button class="sci-btn" onclick="sci('cos')">cos</button>
-                    <button class="sci-btn" onclick="sci('tan')">tan</button>
-                    <button class="sci-btn" onclick="sci('log')">log</button>
-                    <button class="sci-btn" onclick="sci('sqrt')">√</button>
-                    <button class="sci-btn" onclick="ins('(')">(</button>
-                    <button class="sci-btn" onclick="ins(')')">)</button>
-                    <button class="sci-btn" onclick="sci('pow')">x²</button>
-                    <button class="sci-btn" onclick="ins('3.14')">π</button>
-                    <button class="sci-btn" onclick="ins('2.71')">e</button>
-                </div>
-
-                <div class="keypad">
-                    <button class="key-btn" style="background:#d4d4d2;color:#000" onclick="cls()">AC</button>
-                    <button class="key-btn" style="background:#d4d4d2;color:#000" onclick="del()">⌫</button>
-                    <button class="key-btn" style="background:#d4d4d2;color:#000" onclick="ins('%')">%</button>
-                    <button class="key-btn orange" onclick="ins('/')">÷</button>
-                    <button class="key-btn" onclick="ins('7')">7</button>
-                    <button class="key-btn" onclick="ins('8')">8</button>
-                    <button class="key-btn" onclick="ins('9')">9</button>
-                    <button class="key-btn orange" onclick="ins('*')">×</button>
-                    <button class="key-btn" onclick="ins('4')">4</button>
-                    <button class="key-btn" onclick="ins('5')">5</button>
-                    <button class="key-btn" onclick="ins('6')">6</button>
-                    <button class="key-btn orange" onclick="ins('-')">−</button>
-                    <button class="key-btn" onclick="ins('1')">1</button>
-                    <button class="key-btn" onclick="ins('2')">2</button>
-                    <button class="key-btn" onclick="ins('3')">3</button>
-                    <button class="key-btn orange" onclick="ins('+')">+</button>
-                    <button class="key-btn wide" onclick="ins('0')">0</button>
-                    <button class="key-btn" onclick="ins('.')">,</button>
-                    <button class="key-btn orange" onclick="calculate()">=</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="overlay" id="modalConv">
-        <div class="sheet">
-            <div class="handle-area"><div class="handle-bar"></div></div>
-            <div class="conv-container">
-                <h2 style="margin:0 0 20px 0; text-align:center">Conversor</h2>
-                <div style="margin-bottom:15px">
-                    <select id="convType" class="conv-select" style="width:100%;max-width:100%;padding:10px">
-                        <option value="length">📏 Distância</option>
-                        <option value="weight">⚖️ Peso</option>
-                        <option value="volume">💧 Volume</option>
-                    </select>
-                </div>
-                <div class="conv-input-group">
-                    <input type="number" id="convInput" class="conv-input" value="1">
-                    <select id="unitFrom" class="conv-select"></select>
-                </div>
-                <div style="text-align:center;font-size:1.5rem;color:var(--accent)">⬇</div>
-                <div class="conv-input-group">
-                    <div id="convResult" class="conv-input" style="display:flex;align-items:center">...</div>
-                    <select id="unitTo" class="conv-select"></select>
-                </div>
-                <button class="btn-full" id="btnPasteConv">Inserir na Nota</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="overlay" id="modalList">
-        <div class="sheet">
-            <div class="handle-area"><div class="handle-bar"></div></div>
-            <div class="list-container">
-                <h2 style="margin-top:0">Notas</h2>
-                <div id="notesContainer"></div>
-            </div>
-        </div>
-    </div>
+<!-- LIST -->
+<div id="modalList" class="overlay">
+<div class="sheet">
+<div class="handle-area"><div class="handle-bar"></div></div>
+<div class="list-container">
+<h2>Notas</h2>
+<div id="notesContainer"></div>
+</div>
+</div>
+</div>
 
 <script>
-    // --- SEGURANÇA MÁXIMA ---
-    // Envolvemos tudo em 'load' para garantir que o HTML existe
-    window.addEventListener('load', function() {
-        console.log("App Carregada. A iniciar scripts...");
+const $=id=>document.getElementById(id);
+let notes=JSON.parse(localStorage.getItem("notes")||"[]");
 
-        // Função para atribuir cliques de forma segura (se um falhar, os outros funcionam)
-        function safeBind(id, func) {
-            const el = document.getElementById(id);
-            if(el) {
-                el.onclick = function(e) {
-                    try { func(e); } 
-                    catch(err) { console.error("Erro no botão " + id, err); alert("Erro na função: " + id); }
-                };
-            } else {
-                console.warn("Botão não encontrado: " + id);
-            }
-        }
+function openModal(id){$(id).classList.add("active")}
+function closeModal(id){$(id).classList.remove("active")}
 
-        // --- DADOS ---
-        let savedNotes = [];
-        try { savedNotes = JSON.parse(localStorage.getItem('appNotesSafe') || '[]'); } catch(e) { savedNotes=[]; }
-        let calcHistory = [];
+btnTheme.onclick=()=>document.body.dataset.theme=
+document.body.dataset.theme==="light"?"dark":"light";
 
-        // --- FUNÇÕES DE INTERFACE ---
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-            if(id === 'modalList') renderNotes();
-        }
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
+btnOpenCalc.onclick=()=>openModal("modalCalc");
+btnList.onclick=()=>openModal("modalList");
 
-        // --- 1. CONFIGURAR BOTÕES PRINCIPAIS (DOCK) ---
-        safeBind('btnTheme', () => { 
-            document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light'; 
-        });
+btnSave.onclick=()=>{
+    if(!noteBody.value.trim())return alert("Nota vazia");
+    notes.unshift({t:titleInput.value||"Sem título",b:noteBody.value});
+    localStorage.setItem("notes",JSON.stringify(notes));
+    alert("Guardado");
+};
 
-        safeBind('btnList', () => openModal('modalList'));
-        
-        safeBind('btnOpenCalc', () => openModal('modalCalc'));
-        
-        safeBind('btnOpenConv', () => {
-            openModal('modalConv');
-            setTimeout(popUnits, 100); // Inicia conversor com ligeiro atraso para garantir UI
-        });
+function renderNotes(){
+    notesContainer.innerHTML=notes.map(n=>`
+        <div class="note-card">
+            <div>${n.t}</div>
+        </div>`).join("");
+}
+btnList.onclick=()=>{renderNotes();openModal("modalList")};
 
-        safeBind('btnSave', () => {
-            const title = document.getElementById('titleInput').value;
-            const body = document.getElementById('noteBody').value;
-            if(!title.trim() && !body.trim()) return alert("Nota vazia!");
-            savedNotes.unshift({id: Date.now(), title: title||'Sem Título', body: body});
-            localStorage.setItem('appNotesSafe', JSON.stringify(savedNotes));
-            alert("Guardado!");
-            document.getElementById('titleInput').value = ''; 
-            document.getElementById('noteBody').value = '';
-        });
+let display=calcResult;
+window.ins=v=>display.value=display.value==="0"?v:display.value+v;
+window.cls=()=>display.value="0";
+window.del=()=>display.value=display.value.length>1?display.value.slice(0,-1):"0";
+window.calculate=()=>{
+    try{
+        let r=eval(display.value.replace(/×/g,"*").replace(/÷/g,"/"));
+        display.value=+r.toFixed(6)
+    }catch{display.value="Erro"}
+};
 
-        // --- 2. CALCULADORA ---
-        const display = document.getElementById('calcResult');
-        
-        // Expor funções globais para o HTML (onclick="..." no HTML)
-        window.ins = function(v) {
-            if(display.value === '0' && !isNaN(v)) display.value = '';
-            if(display.value === 'Erro') display.value = '';
-            display.value += v;
-        };
-        window.cls = function() { display.value = '0'; };
-        window.del = function() { display.value = display.value.length > 1 ? display.value.slice(0, -1) : '0'; };
-        
-        window.calculate = function() {
-            try {
-                let expr = display.value.replace(/×/g, '*').replace(/÷/g, '/');
-                let result;
-                if(expr.includes('%')) {
-                   result = eval(expr.replace(/([0-9.]+)%/g, '($1/100)'));
-                } else {
-                   result = eval(expr); 
-                }
-                if (!Number.isInteger(result)) result = parseFloat(result.toFixed(4));
-                calcHistory.unshift(display.value + " = " + result);
-                renderHistory();
-                display.value = result;
-            } catch { display.value = 'Erro'; }
-        };
-
-        window.sci = function(func) {
-            try {
-                let val = eval(display.value);
-                let res = func==='sqrt'?Math.sqrt(val):Math[func](val);
-                if (!Number.isInteger(res)) res = parseFloat(res.toFixed(6));
-                display.value = res;
-            } catch { display.value = 'Erro'; }
-        };
-
-        function renderHistory() {
-            document.getElementById('historyList').innerHTML = calcHistory.map(h => `<div class="hist-entry">${h}</div>`).join('');
-        }
-
-        safeBind('btnClearHist', (e) => { e.stopPropagation(); calcHistory = []; renderHistory(); });
-        safeBind('btnShowHist', (e) => { e.stopPropagation(); document.getElementById('historyDropdown').classList.toggle('open'); });
-        safeBind('btnToggleSci', (e) => { e.stopPropagation(); document.getElementById('sciRow').classList.toggle('show'); });
-        safeBind('btnPaste', (e) => {
-            e.stopPropagation();
-            if(display.value !== 'Erro') document.getElementById('noteBody').value += display.value;
-        });
-
-        // --- 3. CONVERSOR ---
-        const units = {
-            length: { u: { m:1, km:1000, cm:0.01, mm:0.001, mi:1609.34, ft:0.3048, in:0.0254 } },
-            weight: { u: { kg:1, g:0.001, lb:0.453592, oz:0.0283495 } },
-            volume: { u: { l:1, ml:0.001, gal:3.78541 } }
-        };
-        const convType = document.getElementById('convType');
-        const unitFrom = document.getElementById('unitFrom');
-        const unitTo = document.getElementById('unitTo');
-        const convInput = document.getElementById('convInput');
-        
-        window.popUnits = function() {
-            const type = convType.value;
-            if(!units[type]) return; 
-            const opts = Object.keys(units[type].u).map(k => `<option value="${k}">${k}</option>`).join('');
-            unitFrom.innerHTML = opts;
-            unitTo.innerHTML = opts;
-            unitTo.selectedIndex = 1;
-            window.doConv();
-        };
-
-        window.doConv = function() {
-            const type = convType.value;
-            const val = parseFloat(convInput.value);
-            if(isNaN(val) || !units[type]) return;
-            const fromF = units[type].u[unitFrom.value];
-            const toF = units[type].u[unitTo.value];
-            const res = (val * fromF) / toF;
-            document.getElementById('convResult').innerText = parseFloat(res.toFixed(4));
-        };
-
-        convType.onchange = window.popUnits;
-        unitFrom.onchange = window.doConv;
-        unitTo.onchange = window.doConv;
-        convInput.oninput = window.doConv;
-
-        safeBind('btnPasteConv', () => {
-            const txt = `${convInput.value}${unitFrom.value} = ${document.getElementById('convResult').innerText}${unitTo.value}`;
-            document.getElementById('noteBody').value += (document.getElementById('noteBody').value ? '\n' : '') + txt;
-            closeModal('modalConv');
-        });
-
-        // --- 4. LISTA DE NOTAS ---
-        function renderNotes() {
-            const c = document.getElementById('notesContainer');
-            c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888">Vazio</p>';
-            savedNotes.forEach(n => {
-                const div = document.createElement('div');
-                div.className = 'note-card';
-                div.innerHTML = `<div style="flex:1" onclick="loadNote(${n.id})"><h4>${n.title}</h4></div><button class="btn-trash" onclick="delNote(${n.id})">🗑</button>`;
-                c.appendChild(div);
-            });
-        }
-        
-        window.loadNote = function(id) {
-            const n = savedNotes.find(x => x.id === id);
-            if(n) { 
-                document.getElementById('titleInput').value = n.title; 
-                document.getElementById('noteBody').value = n.body; 
-                closeModal('modalList'); 
-            }
-        };
-
-        window.delNote = function(id) {
-            if(confirm("Apagar?")) {
-                savedNotes = savedNotes.filter(n => n.id !== id);
-                localStorage.setItem('appNotesSafe', JSON.stringify(savedNotes));
-                renderNotes();
-            }
-        };
-
-        // --- 5. SWIPE E FECHO ---
-        document.querySelectorAll('.overlay').forEach(overlay => {
-            overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(overlay.id); });
-            
-            const sheet = overlay.querySelector('.sheet');
-            let startY = 0;
-            sheet.addEventListener('touchstart', (e) => {
-                if(e.target.closest('#historyList, .list-container, select')) return;
-                if(sheet.scrollTop <= 0) startY = e.touches[0].clientY;
-            }, {passive: true});
-
-            sheet.addEventListener('touchmove', (e) => {
-                if(!startY) return;
-                const diff = e.touches[0].clientY - startY;
-                if(diff > 0) { 
-                    if(e.cancelable) e.preventDefault(); 
-                    sheet.style.transform = `translateY(${diff}px)`; 
-                    sheet.style.transition = 'none';
-                }
-            }, {passive: false});
-
-            sheet.addEventListener('touchend', (e) => {
-                if(!startY) return;
-                sheet.style.transition = 'transform 0.3s';
-                if((e.changedTouches[0].clientY - startY) > 120) closeModal(overlay.id);
-                else sheet.style.transform = '';
-                startY = 0;
-            });
-        });
-
-        // Impedir propagação de scroll no histórico
-        const histList = document.getElementById('historyList');
-        if(histList) histList.addEventListener('touchmove', (e) => e.stopPropagation(), {passive: false});
-
-    }); // Fim do window.onload
+document.querySelectorAll(".overlay").forEach(o=>{
+    o.onclick=e=>{if(e.target===o)closeModal(o.id)}
+});
 </script>
 </body>
 </html>
