@@ -51,7 +51,7 @@
     .calc-preview-bubble.active { opacity: 1; transform: translateX(-50%) translateY(0); }
     .calc-preview-bubble span { color: var(--text); opacity: 0.5; font-weight: 400; font-size: 0.8rem; }
 
-    /* --- DOCK (AJUSTADO PARA CABER TUDO) --- */
+    /* --- DOCK --- */
     .dock-bar {
         position: fixed; bottom: calc(30px + env(safe-area-inset-bottom)); left: 10px; right: 10px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
@@ -67,14 +67,11 @@
     }
     .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.15); }
     
-    /* Botão Principal (Calculadora) */
     .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); width: 48px; height: 48px; font-size: 1.5rem; }
-    
-    /* Botão Novo (Verde) */
     .dock-btn.new-action { background: rgba(52, 199, 89, 0.15); color: var(--green); width: 44px; height: 44px; font-size: 1.5rem; font-weight: 600; }
     .dock-btn.new-action:active { background: var(--green); color: #fff; }
 
-    /* --- ALERTAS PERSONALIZADOS --- */
+    /* --- ALERTAS --- */
     .custom-alert-overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999;
         display: none; align-items: center; justify-content: center;
@@ -257,10 +254,22 @@
     let calcHistory = [];
     let pendingCalculation = null;
 
-    // --- NOVA FUNCIONALIDADE: BOTÃO + ---
+    // --- NOVA FUNCIONALIDADE: TEMA PERSISTENTE ---
+    // 1. Carregar tema salvo ou usar light como padrão
+    const savedTheme = localStorage.getItem('appTheme') || 'light';
+    document.body.dataset.theme = savedTheme;
+
+    // 2. Atualizar o clique do botão
+    document.getElementById('btnTheme').onclick = () => {
+        const current = document.body.dataset.theme;
+        const newTheme = current === 'light' ? 'dark' : 'light';
+        document.body.dataset.theme = newTheme;
+        localStorage.setItem('appTheme', newTheme); // Guardar na memória
+    };
+
+    // --- BOTÃO + ---
     document.getElementById('btnNew').onclick = () => {
         const hasContent = titleInput.value.trim() !== '' || noteBody.value.trim() !== '';
-        
         if (hasContent) {
             newNoteAlert.classList.add('active');
         } else {
@@ -311,9 +320,6 @@
     function hidePreview() { calcPreview.classList.remove('active'); pendingCalculation = null; }
 
     // --- UI GERAL ---
-    document.getElementById('btnTheme').onclick = () => {
-        document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light';
-    };
     document.getElementById('btnClear').onclick = () => {
         if(confirm("Limpar todo o texto atual?")) { titleInput.value = ''; noteBody.value = ''; hidePreview(); }
     };
@@ -458,6 +464,7 @@
 </script>
 </body>
 </html>
+
 
 
 
