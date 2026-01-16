@@ -3,419 +3,257 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>Calculadora Pro Notes</title>
+<title>Pro Notes</title>
 
 <style>
-/* ================= CORES BASE ================= */
-:root {
-    --bg-main:#f2f2f7;
-    --bg-section:#ffffff;
-    --text-color:#1c1c1e;
-    --text-secondary:#8e8e93;
-    --accent:#007aff;
-    --grey-btn:#f2f2f7;
-    --op-bg:#e5e5ea;
-    --border-color:#d1d1d6;
-    --success:#34c759;
-    --danger:#ff3b30;
-    --clear-btn:#ff9500;
-    --neutral:#8e8e93;
-    --orange:#ff9500;
-    --modal-bg:#ffffff;
-    --btn-shadow:0 2px 8px rgba(0,0,0,.1);
+/* ================= VARIÁVEIS ================= */
+:root{
+--bg-main:#f2f2f7;
+--bg-section:#ffffff;
+--text:#1c1c1e;
+--muted:#8e8e93;
+--accent:#007aff;
+--orange:#ff9500;
+--danger:#ff3b30;
+--success:#34c759;
+--neutral:#8e8e93;
+--grey:#f2f2f7;
+--border:#d1d1d6;
+--shadow:0 8px 30px rgba(0,0,0,.2);
 }
 
-/* ================= DARK MODE ================= */
-[data-theme="dark"] {
-    --bg-main:#121212;
-    --bg-section:#272729;
-    --text-color:#ededed;
-    --text-secondary:#98989d;
-    --grey-btn:#38383a;
-    --op-bg:#505053;
-    --border-color:#424244;
-    --modal-bg:#323234;
-    --orange:#ff9f0a;
-    --clear-btn:#ff9f0a;
-    --btn-shadow:0 3px 8px rgba(0,0,0,.4);
+[data-theme="dark"]{
+--bg-main:#121212;
+--bg-section:#272729;
+--text:#ededed;
+--muted:#98989d;
+--grey:#38383a;
+--border:#424244;
+--orange:#ff9f0a;
 }
 
-* {
-    box-sizing:border-box;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    transition:background-color .25s,color .25s;
-}
-
-body {
-    margin:0;
-    background:var(--bg-main);
-    color:var(--text-color);
-    display:flex;
-    height:100vh;
-    overflow:hidden;
-}
-
-.container {
-    display:flex;
-    width:100%;
-    max-width:1200px;
-    margin:auto;
-}
-
-/* ================= SEÇÕES ================= */
-.section-calc {
-    flex:.4;
-    min-width:340px;
-    padding:25px;
-    border-right:1px solid var(--border-color);
-    background:var(--bg-section);
-    overflow-y:auto;
-}
-
-.section-notes {
-    flex:.6;
-    padding:25px;
-    background:var(--bg-section);
-    position:relative;
-    display:flex;
-    flex-direction:column;
-}
-
-/* ================= CALCULADORA ================= */
-#calc-display {
-    width:100%;
-    height:70px;
-    font-size:2.5rem;
-    text-align:right;
-    border:none;
-    outline:none;
-    background:transparent;
-    color:var(--text-color);
-    margin-bottom:15px;
-}
-
-.grid {
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:12px;
-    justify-items:center;
-}
-
-.grid.scientific {
-    grid-template-columns:repeat(5,1fr);
-    gap:10px;
-}
-
-.grid button {
-    width:55px;
-    height:55px;
-    border-radius:50%;
-    border:1px solid var(--border-color);
-    background:var(--grey-btn);
-    font-size:1.1rem;
-    cursor:pointer;
-}
-
-.grid button:active {
-    transform:scale(.92);
-}
-
-.btn-op {background:var(--op-bg);color:var(--accent);font-weight:600}
-.btn-sci {background:var(--accent);color:white;font-size:.8rem;border:none}
-.btn-orange {background:var(--orange);color:white;border:none;font-size:1.5rem}
-.btn-blue {
-    background:var(--accent);
-    color:white;
-    border:none;
-    grid-column:span 2;
-    width:100%;
-    border-radius:30px;
-}
-
-/* ================= CONVERSOR ================= */
-.converter-box {
-    margin-top:25px;
-    padding-top:20px;
-    border-top:1px solid var(--border-color);
-}
-
-.conv-row {
-    display:flex;
-    gap:8px;
-    margin-bottom:10px;
-}
-
-.conv-input,.conv-select {
-    flex:1;
-    padding:12px;
-    border-radius:10px;
-    border:1px solid var(--border-color);
-    background:var(--grey-btn);
-    color:var(--text-color);
-}
-
-.conv-result {
-    padding:14px;
-    border-radius:10px;
-    background:var(--grey-btn);
-    color:var(--accent);
-    font-weight:600;
-    text-align:center;
-    border:1px dashed var(--border-color);
-    cursor:pointer;
+/* ================= BASE ================= */
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto}
+body{
+margin:0;
+background:var(--bg-main);
+color:var(--text);
+height:100vh;
+overflow:hidden;
 }
 
 /* ================= NOTAS ================= */
-#note-title {
-    flex:1;
-    border:none;
-    background:none;
-    font-size:1.3rem;
-    font-weight:700;
-    color:var(--text-color);
-    outline:none;
+.section-notes{
+height:100vh;
+padding:16px;
+display:flex;
+flex-direction:column;
+background:var(--bg-section);
 }
 
-textarea {
-    flex:1;
-    border:none;
-    outline:none;
-    resize:none;
-    font-size:1.15rem;
-    background:transparent;
-    color:var(--text-color);
-    margin-top:20px;
+#note-title{
+border:none;
+font-size:1.3rem;
+font-weight:700;
+background:none;
+color:var(--text);
+outline:none;
 }
 
-/* ================= MODAIS ================= */
-.modal-notes {
-    position:absolute;
-    top:70px;
-    right:25px;
-    width:300px;
-    background:var(--modal-bg);
-    border-radius:14px;
-    box-shadow:var(--btn-shadow);
-    padding:15px;
-    display:none;
-    z-index:100;
+textarea{
+flex:1;
+border:none;
+outline:none;
+resize:none;
+font-size:1.05rem;
+margin-top:12px;
+background:none;
+color:var(--text);
+padding-bottom:100px;
 }
 
-/* ================= BOTÕES ================= */
-.btn-mini {
-    width:46px;
-    height:46px;
-    border-radius:50%;
-    border:none;
-    color:white;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:1.2rem;
-    box-shadow:var(--btn-shadow);
+/* ================= BARRA INFERIOR ================= */
+.floating-actions{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:var(--bg-section);
+border-top:1px solid var(--border);
+display:flex;
+justify-content:space-around;
+padding:10px 0;
+z-index:10;
 }
 
-/* ================= MOBILE ================= */
-@media (max-width:768px) {
-
-body {
-    height:auto;
-    overflow-y:auto;
+.btn-mini{
+width:48px;
+height:48px;
+border-radius:50%;
+border:none;
+font-size:1.2rem;
+color:white;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+touch-action:manipulation;
 }
 
-.container {
-    flex-direction:column;
+/* ================= MODAL CALCULADORA ================= */
+.calc-modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.4);
+display:none;
+align-items:flex-end;
+z-index:100;
 }
 
-.section-calc,
-.section-notes {
-    width:100%;
-    min-width:unset;
-    border-right:none;
-    padding:16px;
+.calc-sheet{
+background:var(--bg-section);
+width:100%;
+border-radius:20px 20px 0 0;
+padding:16px;
+box-shadow:var(--shadow);
 }
 
-.section-calc {
-    border-bottom:1px solid var(--border-color);
+#calc-display{
+width:100%;
+height:60px;
+font-size:2rem;
+text-align:right;
+border:none;
+background:none;
+color:var(--text);
+margin-bottom:12px;
 }
 
-#calc-display {
-    height:60px;
-    font-size:2.1rem;
+.grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
 }
 
-.grid button {
-    width:64px;
-    height:64px;
-    font-size:1.25rem;
+.grid button{
+height:64px;
+border-radius:50%;
+border:none;
+background:var(--grey);
+font-size:1.25rem;
+cursor:pointer;
+touch-action:manipulation;
 }
 
-.btn-blue {
-    height:64px;
+.btn-op{color:var(--accent)}
+.btn-orange{background:var(--orange);color:white}
+.btn-blue{
+grid-column:span 2;
+border-radius:30px;
+background:var(--accent);
+color:white;
 }
 
-.conv-row {
-    flex-direction:column;
+.send-btn{
+margin-top:12px;
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+background:var(--accent);
+color:white;
+font-weight:600;
+font-size:1rem;
 }
 
-.floating-actions {
-    position:fixed;
-    bottom:0;
-    left:0;
-    right:0;
-    background:var(--bg-section);
-    border-top:1px solid var(--border-color);
-    padding:10px;
-    display:flex;
-    justify-content:space-around;
-    z-index:50;
-}
-
-textarea {
-    padding-bottom:90px;
-    font-size:1.05rem;
-}
-
-.modal-notes,
-#calc-history-modal {
-    width:calc(100% - 32px);
-    left:16px;
-    right:16px;
-    max-height:60vh;
-    overflow-y:auto;
-}
+/* ================= DESKTOP ================= */
+@media(min-width:769px){
+.calc-modal{display:none!important}
 }
 </style>
 </head>
 
 <body data-theme="light">
 
-<div class="container">
-
-<!-- ================= CALCULADORA ================= -->
-<div class="section-calc">
-
-<div style="display:flex;justify-content:space-between;margin-bottom:15px">
-<button class="theme-btn btn-mini" style="background:var(--grey-btn);color:var(--text-color)" onclick="toggleTheme()">🌙</button>
-<button class="btn-mini" style="background:var(--grey-btn);color:var(--text-color)" onclick="toggleScientific()">⚛️</button>
-</div>
-
-<input id="calc-display" readonly placeholder="0">
-<div id="calc-grid" class="grid"></div>
-
-<div style="display:flex;gap:12px;margin-top:20px">
-<button class="btn-mini" style="background:var(--grey-btn);color:var(--text-color)" onclick="toggleModal('calc-history-modal')">🕒</button>
-<button class="btn-mini" style="background:var(--accent);width:auto;padding:0 20px;border-radius:25px;font-weight:600"
-onclick="sendToNotes(display.value)">Enviar →</button>
-</div>
-
-<div class="converter-box">
-<div class="conv-row">
-<select id="conv-type" class="conv-select" onchange="updateUnits()">
-<option value="length">Comprimento</option>
-<option value="volume">Volume</option>
-</select>
-</div>
-
-<div class="conv-row">
-<input id="conv-value" type="number" class="conv-input" placeholder="Valor" oninput="doConversion()">
-<select id="unit-from" class="conv-select" onchange="doConversion()"></select>
-</div>
-
-<div class="conv-row">
-<select id="unit-to" class="conv-select" onchange="doConversion()"></select>
-</div>
-
-<div id="conv-result" class="conv-result" onclick="sendToNotes(this.innerText)">
-Resultado…
-</div>
-</div>
-
-<div id="calc-history-modal" class="modal-notes">
-<strong>Histórico</strong>
-<div id="calc-history-list"></div>
-</div>
-
-</div>
-
 <!-- ================= NOTAS ================= -->
 <div class="section-notes">
-
-<div style="display:flex;gap:12px;align-items:center;border-bottom:1px solid var(--border-color);padding-bottom:15px">
-<button class="btn-mini" style="background:var(--accent)" onclick="createNewNote()">+</button>
 <input id="note-title" placeholder="Título da nota">
-<button class="btn-mini" style="background:var(--grey-btn);color:var(--text-color)"
-onclick="toggleModal('history-modal')">📁</button>
+<textarea id="notes" placeholder="Começa a escrever..."></textarea>
 </div>
 
-<div id="history-modal" class="modal-notes">
-<strong>As minhas notas</strong>
-<div id="history-list"></div>
-</div>
-
-<textarea id="notes" placeholder="Começa a escrever…"></textarea>
-
+<!-- ================= BARRA ================= -->
 <div class="floating-actions">
-<button class="btn-mini" style="background:var(--neutral)" onclick="copyToClipboard()">📋</button>
-<button class="btn-mini" style="background:var(--clear-btn)" onclick="clearCurrentNoteText()">🧹</button>
+<button class="btn-mini" style="background:var(--neutral)" onclick="copy()">📋</button>
+<button class="btn-mini" style="background:var(--orange)" onclick="clearText()">🧹</button>
 <button class="btn-mini" style="background:var(--danger)" onclick="deleteNote()">🗑</button>
-<button class="btn-mini" style="background:var(--success)" onclick="saveCurrentNote(true)">✓</button>
+<button class="btn-mini" style="background:var(--success)" onclick="save()">✓</button>
+<button class="btn-mini" style="background:var(--accent)" onclick="openCalc()">🧮</button>
 </div>
 
+<!-- ================= CALCULADORA ================= -->
+<div class="calc-modal" id="calcModal" onclick="closeCalc(event)">
+<div class="calc-sheet">
+<input id="calc-display" readonly>
+
+<div class="grid" id="calc-grid"></div>
+
+<button class="send-btn" onclick="sendCalc()">Enviar para Notas</button>
 </div>
 </div>
 
 <script>
-/* === JS ORIGINAL (inalterado, apenas funcional) === */
-const display=document.getElementById('calc-display');
-const grid=document.getElementById('calc-grid');
-const notesArea=document.getElementById('notes');
-const titleInput=document.getElementById('note-title');
-let isScientific=false;
+const display=document.getElementById("calc-display");
+const notes=document.getElementById("notes");
+const modal=document.getElementById("calcModal");
 
-function toggleScientific(){isScientific=!isScientific;grid.classList.toggle('scientific',isScientific);renderButtons()}
-function renderButtons(){
-const sci=isScientific?[{t:'sin',f:"sci('sin')"},{t:'cos',f:"sci('cos')"},{t:'tan',f:"sci('tan')"},{t:'√',f:"sci('sqrt')"},{t:'π',f:"addChar(Math.PI.toFixed(4))"}]:[];
-const normal=[
-{t:'C',f:'clearCalc()'},{t:'%',f:"addChar('%')"},{t:'÷',f:"addChar('/')"},
-{t:'7',f:"addChar('7')"},{t:'8',f:"addChar('8')"},{t:'9',f:"addChar('9')"},{t:'×',f:"addChar('*')"},
-{t:'4',f:"addChar('4')"},{t:'5',f:"addChar('5')"},{t:'6',f:"addChar('6')"},{t:'-',f:"addChar('-')"},
-{t:'1',f:"addChar('1')"},{t:'2',f:"addChar('2')"},{t:'3',f:"addChar('3')"},{t:'+',f:"addChar('+')"},
-{t:'0',c:'btn-blue',f:"addChar('0')"},{t:'.',f:"addChar('.')"},
-{t:'=',f:'calculate()'}];
-grid.innerHTML=[...sci,...normal].map(b=>`<button class="${b.c||''}" onclick="${b.f}">${b.t}</button>`).join('');
+const buttons=[
+"C","%","÷","⌫",
+"7","8","9","×",
+"4","5","6","-",
+"1","2","3","+",
+"0",".","="
+];
+
+function renderCalc(){
+document.getElementById("calc-grid").innerHTML=
+buttons.map(b=>{
+let cls="";
+if("+-×=".includes(b))cls="btn-orange";
+if("C%⌫÷".includes(b))cls="btn-op";
+if(b==="0")cls="btn-blue";
+return `<button class="${cls}" onpointerdown="press('${b}')">${b}</button>`;
+}).join("");
 }
 
-function addChar(c){display.value+=c}
-function clearCalc(){display.value=''}
-function calculate(){try{display.value=eval(display.value)}catch{display.value='Erro'}}
-
-const unitsMap={length:{km:1000,m:1,cm:.01},volume:{L:1,ml:.001}};
-function updateUnits(){
-const t=convType.value;
-unitFrom.innerHTML=unitTo.innerHTML='';
-Object.keys(unitsMap[t]).forEach(u=>{
-unitFrom.innerHTML+=`<option>${u}</option>`;
-unitTo.innerHTML+=`<option>${u}</option>`;
-});
-doConversion();
+function press(v){
+if(v==="C"){display.value="";return;}
+if(v==="⌫"){display.value=display.value.slice(0,-1);return;}
+if(v==="="){
+try{display.value=eval(display.value.replace("×","*").replace("÷","/"))}
+catch{display.value="Erro"}
+return;
 }
-function doConversion(){
-const v=parseFloat(convValue.value);
-if(isNaN(v))return;
-convResult.innerText=v+" = "+v;
+display.value+=v;
 }
 
-function toggleTheme(){
-const b=document.body;
-const t=b.dataset.theme==='light'?'dark':'light';
-b.dataset.theme=t;
-localStorage.setItem('preferred-theme',t);
+function openCalc(){modal.style.display="flex"}
+function closeCalc(e){if(e.target===modal)modal.style.display="none"}
+
+function sendCalc(){
+if(display.value && display.value!=="Erro"){
+notes.value+=`• ${display.value}\n`;
 }
-renderButtons();
+modal.style.display="none";
+}
+
+function copy(){navigator.clipboard.writeText(notes.value)}
+function clearText(){notes.value=""}
+function save(){alert("Guardado")}
+function deleteNote(){notes.value="";document.getElementById("note-title").value=""}
+
+renderCalc();
 </script>
 
 </body>
