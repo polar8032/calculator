@@ -39,7 +39,7 @@
         color: var(--text); outline: none; resize: none;
     }
 
-    /* --- PREVIEW BUBBLE (NOVO) --- */
+    /* --- PREVIEW BUBBLE --- */
     .calc-preview-bubble {
         position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
         background: var(--card); border: 1px solid var(--accent); color: var(--accent);
@@ -53,20 +53,47 @@
 
     /* --- DOCK --- */
     .dock-bar {
-        position: fixed; bottom: calc(30px + env(safe-area-inset-bottom)); left: 20px; right: 20px;
+        position: fixed; bottom: calc(30px + env(safe-area-inset-bottom)); left: 15px; right: 15px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-        padding: 10px 15px; border-radius: 45px;
+        padding: 10px 10px; border-radius: 45px;
         display: flex; justify-content: space-between; align-items: center;
         box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid rgba(128,128,128,0.2); z-index: 100;
     }
     .dock-btn {
-        width: 50px; height: 50px; border-radius: 50%; border: none;
-        background: transparent; color: var(--accent); font-size: 1.5rem;
+        width: 45px; height: 45px; border-radius: 50%; border: none;
+        background: transparent; color: var(--accent); font-size: 1.4rem;
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         transition: transform 0.1s;
     }
     .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.15); }
-    .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
+    .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); width: 50px; height: 50px; font-size: 1.6rem; }
+
+    /* --- ALERTAS PERSONALIZADOS (NOVO) --- */
+    .custom-alert-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999;
+        display: none; align-items: center; justify-content: center;
+        backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.2s;
+    }
+    .custom-alert-overlay.active { display: flex; opacity: 1; }
+    .custom-alert-box {
+        background: var(--sheet-bg); width: 80%; max-width: 300px;
+        border-radius: 14px; text-align: center;
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: scale(1.1); transition: transform 0.2s;
+    }
+    .custom-alert-overlay.active .custom-alert-box { transform: scale(1); }
+    .alert-content { padding: 20px; }
+    .alert-title { margin: 0 0 8px 0; font-size: 1.1rem; font-weight: 600; color: var(--text); }
+    .alert-msg { margin: 0; font-size: 0.9rem; color: var(--text); opacity: 0.8; }
+    .alert-actions { display: flex; flex-direction: column; border-top: 1px solid rgba(128,128,128,0.2); }
+    .alert-btn {
+        padding: 14px; background: transparent; border: none; border-bottom: 1px solid rgba(128,128,128,0.2);
+        font-size: 1rem; color: var(--accent); cursor: pointer; width: 100%;
+    }
+    .alert-btn:last-child { border-bottom: none; }
+    .alert-btn.red { color: var(--red); font-weight: 500; }
+    .alert-btn.bold { font-weight: 700; }
+    .alert-btn:active { background: rgba(128,128,128,0.1); }
 
     /* --- SHEETS --- */
     .overlay {
@@ -112,7 +139,7 @@
     .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; flex-shrink: 0; }
     .sci-row.show { display: grid; }
     .sci-btn { height: 40px; border-radius: 10px; border: none; background: var(--btn-grey); color: var(--text); font-size: 0.8rem; font-weight: 600; }
-    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; width: 100%; max-width: 380px; margin-bottom: 10px; flex-shrink: 0; }
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 380px; margin-bottom: 10px; flex-shrink: 0; }
     .key-btn { aspect-ratio: 1/1; width: 100%; max-width: 75px; border-radius: 50%; border: none; font-size: 1.7rem; background: var(--btn-grey); color: var(--btn-text); display: flex; align-items: center; justify-content: center; margin: 0 auto; }
     .key-btn:active { filter: brightness(0.85); }
     .key-btn.orange { background: var(--orange); color: #fff; }
@@ -139,11 +166,26 @@
 
     <div class="dock-bar">
         <button class="dock-btn" id="btnTheme">◑</button>
-        <button class="dock-btn" id="btnClear">✕</button>
+        <button class="dock-btn" id="btnNew" style="font-weight:600;font-size:1.8rem">＋</button>
+        <button class="dock-btn" id="btnClear" style="font-size:1.2rem">✕</button>
         <button class="dock-btn main-action" id="btnOpenCalc">🧮</button>
         <button class="dock-btn" id="btnConverter">⇄</button>
         <button class="dock-btn" id="btnSave">💾</button>
         <button class="dock-btn" id="btnList">☰</button>
+    </div>
+
+    <div class="custom-alert-overlay" id="newNoteAlert">
+        <div class="custom-alert-box">
+            <div class="alert-content">
+                <h3 class="alert-title">Nova Nota</h3>
+                <p class="alert-msg">Desejas guardar a nota atual antes de criar uma nova?</p>
+            </div>
+            <div class="alert-actions">
+                <button class="alert-btn bold" onclick="confirmNewNote('save')">Guardar e Novo</button>
+                <button class="alert-btn red" onclick="confirmNewNote('discard')">Apagar e Novo</button>
+                <button class="alert-btn" onclick="confirmNewNote('cancel')">Cancelar</button>
+            </div>
+        </div>
     </div>
 
     <div class="overlay" id="modalCalc">
@@ -203,77 +245,86 @@
     const historyList = document.getElementById('historyList');
     const calcPreview = document.getElementById('calcPreview');
     const previewValue = document.getElementById('previewValue');
+    const newNoteAlert = document.getElementById('newNoteAlert');
     
     let savedNotes = JSON.parse(localStorage.getItem('appNotes') || '[]');
     let calcHistory = [];
     let pendingCalculation = null;
 
-    // --- LÓGICA DE PREVIEW E INSERÇÃO (CORRIGIDA) ---
-    
-    // 1. Detetar o sinal de igual e mostrar preview
-    noteBody.addEventListener('input', (e) => {
-        // Se a tecla pressionada não foi '=', escondemos qualquer preview anterior
-        if (e.data !== '=') {
-            hidePreview();
-            return;
+    // --- NOVA FUNCIONALIDADE: BOTÃO + ---
+    document.getElementById('btnNew').onclick = () => {
+        const hasContent = titleInput.value.trim() !== '' || noteBody.value.trim() !== '';
+        
+        if (hasContent) {
+            // Se tem texto, abre o alerta perguntando
+            newNoteAlert.classList.add('active');
+        } else {
+            // Se já está vazio, apenas garante o foco
+            titleInput.value = '';
+            noteBody.value = '';
+            titleInput.focus();
         }
+    };
 
+    window.confirmNewNote = (action) => {
+        if (action === 'save') {
+            // Guarda
+            saveNoteLogic();
+            // Limpa
+            titleInput.value = '';
+            noteBody.value = '';
+            hidePreview();
+            newNoteAlert.classList.remove('active');
+        } else if (action === 'discard') {
+            // Limpa sem guardar
+            titleInput.value = '';
+            noteBody.value = '';
+            hidePreview();
+            newNoteAlert.classList.remove('active');
+        } else {
+            // Cancela
+            newNoteAlert.classList.remove('active');
+        }
+    };
+
+    // --- LÓGICA DE PREVIEW E INSERÇÃO ---
+    noteBody.addEventListener('input', (e) => {
+        if (e.data !== '=') { hidePreview(); return; }
         const val = e.target.value;
         const match = val.match(/(?:^|[\n\s])([0-9.,+\-*/()]+)=$/);
-        
         if (match) {
             const expression = match[1].replace(/,/g, '.');
             try {
                 let result = eval(expression);
                 if(!Number.isInteger(result)) result = parseFloat(result.toFixed(2));
-                
-                // Guardar o resultado pendente e mostrar a bolha
                 pendingCalculation = result;
                 showPreview(result);
-            } catch (err) {
-                hidePreview();
-            }
+            } catch (err) { hidePreview(); }
         }
     });
 
-    // 2. Detetar a tecla ESPAÇO para confirmar a inserção
     noteBody.addEventListener('keydown', (e) => {
-        // Se a tecla for Espaço e tivermos um cálculo pendente visível
         if ((e.key === ' ' || e.code === 'Space') && pendingCalculation !== null) {
-            e.preventDefault(); // Impede o espaço de ser escrito
-            
-            // Insere o resultado
+            e.preventDefault();
             noteBody.value += pendingCalculation;
-            
-            // Limpa tudo
             hidePreview();
         }
     });
 
-    function showPreview(val) {
-        previewValue.textContent = val;
-        calcPreview.classList.add('active');
-    }
-
-    function hidePreview() {
-        calcPreview.classList.remove('active');
-        pendingCalculation = null;
-    }
+    function showPreview(val) { previewValue.textContent = val; calcPreview.classList.add('active'); }
+    function hidePreview() { calcPreview.classList.remove('active'); pendingCalculation = null; }
 
     // --- UI GERAL ---
     document.getElementById('btnTheme').onclick = () => {
         document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light';
     };
     document.getElementById('btnClear').onclick = () => {
-        if(confirm("Limpar editor?")) { titleInput.value = ''; noteBody.value = ''; hidePreview(); }
+        // Mantive o botão X antigo também, como limpeza rápida
+        if(confirm("Limpar todo o texto atual?")) { titleInput.value = ''; noteBody.value = ''; hidePreview(); }
     };
 
     // --- CALCULADORA ---
-    function ins(v) {
-        if(display.value === '0' && !isNaN(v)) display.value = '';
-        if(display.value === 'Erro') display.value = '';
-        display.value += v;
-    }
+    function ins(v) { if(display.value === '0' && !isNaN(v)) display.value = ''; if(display.value === 'Erro') display.value = ''; display.value += v; }
     function cls() { display.value = '0'; }
     function del() { display.value = display.value.length > 1 ? display.value.slice(0, -1) : '0'; }
     function calculate() {
@@ -287,12 +338,8 @@
                     let [base, perc] = expr.split(op);
                     let val = parseFloat(base) * (parseFloat(perc)/100);
                     result = op === '+' ? parseFloat(base) + val : parseFloat(base) - val;
-                } else {
-                    result = eval(expr.replace(/([0-9.]+)%/g, '($1/100)'));
-                }
-            } else {
-                result = eval(expr);
-            }
+                } else { result = eval(expr.replace(/([0-9.]+)%/g, '($1/100)')); }
+            } else { result = eval(expr); }
             if (!Number.isInteger(result)) result = parseFloat(result.toFixed(4));
             addToHistory(display.value, result);
             display.value = result;
@@ -309,30 +356,12 @@
     }
 
     // --- HISTÓRICO ---
-    function addToHistory(op, res) {
-        calcHistory.unshift(`${op} = ${res}`);
-        renderHistory();
-    }
-    function renderHistory() {
-        historyList.innerHTML = calcHistory.map(h => `<div class="hist-entry">${h}</div>`).join('');
-    }
-    document.getElementById('btnClearHist').onclick = (e) => {
-        e.stopPropagation();
-        calcHistory = [];
-        renderHistory();
-    };
-    document.getElementById('btnShowHist').onclick = (e) => {
-        e.stopPropagation();
-        historyDropdown.classList.toggle('open');
-    };
-    document.getElementById('btnToggleSci').onclick = (e) => {
-        e.stopPropagation();
-        document.getElementById('sciRow').classList.toggle('show');
-    };
-    document.getElementById('btnPaste').onclick = (e) => {
-        e.stopPropagation();
-        if(display.value !== 'Erro') noteBody.value += (noteBody.value ? '\n' : '') + display.value;
-    };
+    function addToHistory(op, res) { calcHistory.unshift(`${op} = ${res}`); renderHistory(); }
+    function renderHistory() { historyList.innerHTML = calcHistory.map(h => `<div class="hist-entry">${h}</div>`).join(''); }
+    document.getElementById('btnClearHist').onclick = (e) => { e.stopPropagation(); calcHistory = []; renderHistory(); };
+    document.getElementById('btnShowHist').onclick = (e) => { e.stopPropagation(); historyDropdown.classList.toggle('open'); };
+    document.getElementById('btnToggleSci').onclick = (e) => { e.stopPropagation(); document.getElementById('sciRow').classList.toggle('show'); };
+    document.getElementById('btnPaste').onclick = (e) => { e.stopPropagation(); if(display.value !== 'Erro') noteBody.value += (noteBody.value ? '\n' : '') + display.value; };
 
     // --- NOTAS ---
     function renderNotes() {
@@ -348,12 +377,19 @@
             c.appendChild(div);
         });
     }
-    document.getElementById('btnSave').onclick = () => {
+
+    function saveNoteLogic() {
         if(!titleInput.value.trim() && !noteBody.value.trim()) return;
         savedNotes.unshift({id: Date.now(), title: titleInput.value||'Sem Título', body: noteBody.value});
         localStorage.setItem('appNotes', JSON.stringify(savedNotes));
-        alert("Guardado!"); titleInput.value = ''; noteBody.value = '';
+    }
+
+    document.getElementById('btnSave').onclick = () => {
+        saveNoteLogic();
+        alert("Guardado!"); 
+        // No btnSave normal não limpamos, apenas guardamos
     };
+
     window.loadNote = (id) => {
         const n = savedNotes.find(x => x.id === id);
         if(n) { titleInput.value = n.title; noteBody.value = n.body; closeModal('modalList'); }
@@ -366,7 +402,7 @@
         }
     };
 
-    // --- MODAL & SWIPE (CORRIGIDO) ---
+    // --- MODAL & SWIPE ---
     function openModal(id) { 
         const overlay = document.getElementById(id);
         const sheet = overlay.querySelector('.sheet');
@@ -428,5 +464,6 @@
 </script>
 </body>
 </html>
+
 
     
