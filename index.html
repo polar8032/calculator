@@ -3,189 +3,539 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Pro Notes Ultimate Fix</title>
-
+<title>Pro Notes & Calc Ultimate</title>
 <style>
-:root {
-    --bg:#f2f2f7;--card:#fff;--text:#000;
-    --accent:#007aff;--orange:#ff9500;--red:#ff3b30;
-    --sheet-bg:rgba(245,245,247,.98);
-    --btn-grey:#e5e5ea;--btn-text:#000;
-    --border:#c6c6c8;--blur:blur(20px);
-}
-[data-theme="dark"] {
-    --bg:#000;--card:#1c1c1e;--text:#fff;
-    --sheet-bg:rgba(30,30,30,.98);
-    --btn-grey:#3a3a3c;--btn-text:#fff;
-    --border:#38383a;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{
-    margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
-    background:var(--bg);color:var(--text);height:100vh;overflow:hidden;
-    display:flex;flex-direction:column
-}
-.editor-area{flex:1;padding:20px 20px 120px}
-#titleInput{border:none;font-size:2.2rem;font-weight:700;background:none;color:var(--text);outline:none}
-#noteBody{flex:1;border:none;background:none;font-size:1.2rem;color:var(--text);outline:none;resize:none}
+    :root {
+        --bg: #f2f2f7; --card: #ffffff; --text: #000000;
+        --accent: #007aff; --orange: #ff9500; --red: #ff3b30;
+        --sheet-bg: rgba(245, 245, 247, 0.98);
+        --btn-grey: #e5e5ea; --btn-text: #000;
+        --border: #c6c6c8; --blur: blur(20px);
+    }
+    [data-theme="dark"] {
+        --bg: #000000; --card: #1c1c1e; --text: #ffffff;
+        --sheet-bg: rgba(30, 30, 30, 0.98);
+        --btn-grey: #3a3a3c; --btn-text: #fff;
+        --border: #38383a;
+    }
 
-/* DOCK */
-.dock-bar{
-    position:fixed;bottom:30px;left:15px;right:15px;
-    background:var(--sheet-bg);backdrop-filter:var(--blur);
-    padding:8px;border-radius:45px;
-    display:flex;justify-content:space-between;
-    box-shadow:0 10px 30px rgba(0,0,0,.25);
-    z-index:9000
-}
-.dock-btn{
-    width:50px;height:50px;border-radius:50%;
-    border:none;background:none;font-size:1.5rem;
-    color:var(--accent)
-}
-.dock-btn.main-action{background:var(--accent);color:#fff}
+    * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    body {
+        margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+        background: var(--bg); color: var(--text); height: 100vh; overflow: hidden;
+        display: flex; flex-direction: column;
+    }
 
-/* OVERLAYS */
-.overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,.5);
-    display:flex;justify-content:flex-end;
-    opacity:0;pointer-events:none;
-    transition:.3s;z-index:10000
-}
-.overlay.active{opacity:1;pointer-events:auto}
-.sheet{
-    background:var(--sheet-bg);
-    width:100%;border-radius:30px 30px 0 0;
-    transform:translateY(100%);
-    transition:.35s cubic-bezier(.2,.9,.3,1);
-    max-height:90vh;overflow:hidden
-}
-.overlay.active .sheet{transform:none}
-.handle-area{padding:15px;display:flex;justify-content:center}
-.handle-bar{width:40px;height:5px;background:var(--border);border-radius:10px}
+    /* --- EDITOR DE NOTAS --- */
+    .editor-area { flex: 1; display: flex; flex-direction: column; padding: 20px 20px 110px 20px; }
+    
+    input#titleInput {
+        background: transparent; border: none; font-size: 2.2rem; font-weight: 700;
+        color: var(--text); outline: none; margin-bottom: 15px; width: 100%;
+    }
+    textarea#noteBody {
+        flex: 1; background: transparent; border: none; font-size: 1.2rem; line-height: 1.6;
+        color: var(--text); outline: none; resize: none;
+    }
 
-/* CALC */
-.calc-container{padding:0 20px 40px}
-#calcResult{
-    font-size:3.5rem;border:none;background:none;
-    color:var(--text);width:100%;text-align:right
-}
-.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.key-btn{
-    aspect-ratio:1;border:none;border-radius:50%;
-    font-size:1.5rem;background:var(--btn-grey)
-}
-.key-btn.orange{background:var(--orange);color:#fff}
-.key-btn.wide{grid-column:span 2;border-radius:40px}
+    /* --- DOCK --- */
+    .dock-bar {
+        position: fixed; bottom: 30px; left: 20px; right: 20px;
+        background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+        padding: 10px 15px; border-radius: 45px;
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid rgba(128,128,128,0.2); z-index: 100;
+    }
+    .dock-btn {
+        width: 50px; height: 50px; border-radius: 50%; border: none;
+        background: transparent; color: var(--accent); font-size: 1.5rem;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        transition: transform 0.1s;
+    }
+    .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.15); }
+    .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
 
-/* LIST */
-.list-container{padding:20px;height:70vh;overflow:auto}
-.note-card{
-    background:var(--card);padding:15px;border-radius:12px;
-    margin-bottom:10px;display:flex;justify-content:space-between
-}
+    /* --- SHEETS --- */
+    .overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+        opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .overlay.active { opacity: 1; pointer-events: auto; }
+    
+    .sheet {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        background: var(--sheet-bg); border-radius: 30px 30px 0 0;
+        transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        display: flex; flex-direction: column; max-height: 95vh;
+        backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .overlay.active .sheet { transform: translateY(0); }
+    
+    .handle-area { width: 100%; padding: 15px 0; display: flex; justify-content: center; flex-shrink: 0; }
+    .handle-bar { width: 40px; height: 5px; background: var(--border); border-radius: 10px; opacity: 0.8; }
+
+    /* --- CALCULADORA --- */
+    .calc-container { padding: 0 20px 40px 20px; display: flex; flex-direction: column; align-items: center; }
+    
+    .display-wrapper { width: 100%; text-align: right; margin-bottom: 10px; }
+    #calcResult {
+        width: 100%; text-align: right; font-size: 3.5rem; border: none;
+        background: transparent; color: var(--text); font-weight: 300; outline: none; margin: 0;
+    }
+    
+    /* Histórico */
+    .history-dropdown {
+        width: 100%; background: rgba(128,128,128,0.1); border-radius: 15px;
+        max-height: 0; overflow-y: auto; transition: max-height 0.3s ease;
+        margin-bottom: 10px;
+        overscroll-behavior: contain; /* Evita arrastar a sheet quando faz scroll */
+    }
+    .history-dropdown.open { max-height: 180px; border: 1px solid var(--border); }
+    
+    .hist-header { 
+        display: flex; justify-content: space-between; align-items: center; 
+        padding: 8px 12px; background: rgba(0,0,0,0.03); border-bottom: 1px solid var(--border);
+        position: sticky; top: 0;
+    }
+    .btn-clear-hist { font-size: 0.8rem; color: var(--red); background: none; border: none; font-weight: 600; }
+    
+    .hist-list-content { padding: 5px; }
+    .hist-entry { 
+        text-align: right; padding: 8px; border-bottom: 1px solid rgba(128,128,128,0.1); 
+        font-size: 1.1rem; color: var(--text);
+    }
+
+    /* Tools & Grid */
+    .calc-tools { width: 100%; display: flex; justify-content: space-between; margin-bottom: 15px; padding: 0 5px; }
+    .tool-btn { background: none; border: none; font-weight: 600; font-size: 0.95rem; color: var(--accent); padding: 5px; }
+
+    .sci-row { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin-bottom: 10px; }
+    .sci-row.show { display: grid; }
+    .sci-btn { height: 40px; border-radius: 10px; border: none; background: var(--btn-grey); color: var(--text); font-size: 0.8rem; font-weight: 600; }
+
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; width: 100%; max-width: 380px; }
+    .key-btn {
+        aspect-ratio: 1/1; width: 100%; max-width: 75px; 
+        border-radius: 50%; border: none; font-size: 1.7rem;
+        background: var(--btn-grey); color: var(--btn-text);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto; 
+    }
+    .key-btn:active { filter: brightness(0.85); }
+    .key-btn.orange { background: var(--orange); color: #fff; }
+    .key-btn.wide { 
+        grid-column: span 2; width: 100%; max-width: none; 
+        aspect-ratio: auto; height: 75px; border-radius: 40px; 
+        justify-content: flex-start; padding-left: 30px; 
+    }
+
+    /* --- NOTAS --- */
+    .list-container { padding: 0 20px 40px 20px; overflow-y: auto; height: 70vh; width: 100%; }
+    .note-card {
+        background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px;
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);
+    }
+    .note-card-text { flex: 1; overflow: hidden; }
+    .btn-trash {
+        background: rgba(255, 59, 48, 0.1); color: var(--red); border: none;
+        width: 35px; height: 35px; border-radius: 50%; margin-left: 10px;
+    }
+
 </style>
 </head>
-
 <body data-theme="light">
 
-<div class="editor-area">
-    <input id="titleInput" placeholder="Título">
-    <textarea id="noteBody" placeholder="Escreve aqui..."></textarea>
-</div>
+    <div class="editor-area">
+        <input type="text" id="titleInput" placeholder="Título">
+        <textarea id="noteBody" placeholder="Escreve aqui... (ex: 10+20=)"></textarea>
+    </div>
 
-<div class="dock-bar">
-    <button id="btnTheme" class="dock-btn">◑</button>
-    <button id="btnList" class="dock-btn">☰</button>
-    <button id="btnOpenCalc" class="dock-btn main-action">🧮</button>
-    <button id="btnOpenConv" class="dock-btn">⇄</button>
-    <button id="btnSave" class="dock-btn">💾</button>
-</div>
+    <div class="dock-bar">
+        <button class="dock-btn" id="btnTheme">◑</button>
+        <button class="dock-btn" id="btnClear">✕</button>
+        <button class="dock-btn main-action" id="btnOpenCalc">🧮</button>
+        <button class="dock-btn" id="btnConverter">⇄</button>
+        <button class="dock-btn" id="btnSave">💾</button>
+        <button class="dock-btn" id="btnList">☰</button>
+    </div>
 
-<!-- CALC -->
-<div id="modalCalc" class="overlay">
-<div class="sheet">
-<div class="handle-area"><div class="handle-bar"></div></div>
-<div class="calc-container">
-<input id="calcResult" value="0" readonly>
-<div class="keypad">
-<button class="key-btn" onclick="cls()">AC</button>
-<button class="key-btn" onclick="del()">⌫</button>
-<button class="key-btn" onclick="ins('%')">%</button>
-<button class="key-btn orange" onclick="ins('/')">÷</button>
-<button class="key-btn" onclick="ins('7')">7</button>
-<button class="key-btn" onclick="ins('8')">8</button>
-<button class="key-btn" onclick="ins('9')">9</button>
-<button class="key-btn orange" onclick="ins('*')">×</button>
-<button class="key-btn" onclick="ins('4')">4</button>
-<button class="key-btn" onclick="ins('5')">5</button>
-<button class="key-btn" onclick="ins('6')">6</button>
-<button class="key-btn orange" onclick="ins('-')">−</button>
-<button class="key-btn" onclick="ins('1')">1</button>
-<button class="key-btn" onclick="ins('2')">2</button>
-<button class="key-btn" onclick="ins('3')">3</button>
-<button class="key-btn orange" onclick="ins('+')">+</button>
-<button class="key-btn wide" onclick="ins('0')">0</button>
-<button class="key-btn" onclick="ins('.')">.</button>
-<button class="key-btn orange" onclick="calculate()">=</button>
-</div>
-</div>
-</div>
-</div>
+    <div class="overlay" id="modalCalc">
+        <div class="sheet">
+            <div class="handle-area"><div class="handle-bar"></div></div>
+            <div class="calc-container">
+                
+                <div class="history-dropdown" id="historyDropdown">
+                    <div class="hist-header">
+                        <span style="font-size:0.8rem;color:var(--text-sec)">Histórico</span>
+                        <button class="btn-clear-hist" id="btnClearHist">Limpar</button>
+                    </div>
+                    <div class="hist-list-content" id="historyList"></div>
+                </div>
 
-<!-- LIST -->
-<div id="modalList" class="overlay">
-<div class="sheet">
-<div class="handle-area"><div class="handle-bar"></div></div>
-<div class="list-container">
-<h2>Notas</h2>
-<div id="notesContainer"></div>
-</div>
-</div>
-</div>
+                <div class="display-wrapper">
+                    <input id="calcResult" readonly value="0">
+                </div>
+
+                <div class="calc-tools">
+                    <button class="tool-btn" id="btnShowHist">🕒 Histórico</button>
+                    <button class="tool-btn" id="btnToggleSci">Científica</button>
+                    <button class="tool-btn" style="color:var(--orange)" id="btnPaste">Inserir na Nota</button>
+                </div>
+
+                <div class="sci-row" id="sciRow">
+                    <button class="sci-btn" onclick="sci('sin')">sin</button>
+                    <button class="sci-btn" onclick="sci('cos')">cos</button>
+                    <button class="sci-btn" onclick="sci('tan')">tan</button>
+                    <button class="sci-btn" onclick="sci('log')">log</button>
+                    <button class="sci-btn" onclick="sci('sqrt')">√</button>
+                    <button class="sci-btn" onclick="ins('(')">(</button>
+                    <button class="sci-btn" onclick="ins(')')">)</button>
+                    <button class="sci-btn" onclick="sci('pow')">x²</button>
+                    <button class="sci-btn" onclick="ins('3.1415')">π</button>
+                    <button class="sci-btn" onclick="ins('2.7182')">e</button>
+                </div>
+
+                <div class="keypad">
+                    <button class="key-btn" style="background:#d4d4d2;color:#000" onclick="cls()">AC</button>
+                    <button class="key-btn" style="background:#d4d4d2;color:#000" onclick="del()">⌫</button>
+                    <button class="key-btn" style="background:#d4d4d2;color:#000" onclick="ins('%')">%</button>
+                    <button class="key-btn orange" onclick="ins('/')">÷</button>
+                    <button class="key-btn" onclick="ins('7')">7</button>
+                    <button class="key-btn" onclick="ins('8')">8</button>
+                    <button class="key-btn" onclick="ins('9')">9</button>
+                    <button class="key-btn orange" onclick="ins('*')">×</button>
+                    <button class="key-btn" onclick="ins('4')">4</button>
+                    <button class="key-btn" onclick="ins('5')">5</button>
+                    <button class="key-btn" onclick="ins('6')">6</button>
+                    <button class="key-btn orange" onclick="ins('-')">−</button>
+                    <button class="key-btn" onclick="ins('1')">1</button>
+                    <button class="key-btn" onclick="ins('2')">2</button>
+                    <button class="key-btn" onclick="ins('3')">3</button>
+                    <button class="key-btn orange" onclick="ins('+')">+</button>
+                    <button class="key-btn wide" onclick="ins('0')">0</button>
+                    <button class="key-btn" onclick="ins('.')">,</button>
+                    <button class="key-btn orange" onclick="calculate()">=</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="modalList">
+        <div class="sheet">
+            <div class="handle-area"><div class="handle-bar"></div></div>
+            <div class="list-container">
+                <h2 style="margin-top:0">Notas Guardadas</h2>
+                <div id="notesContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="modalConverter">
+        <div class="sheet">
+            <div class="handle-area"><div class="handle-bar"></div></div>
+            <div class="calc-container">
+                <h2 style="margin:0 0 20px 0">Conversor</h2>
+                
+                <div style="width:100%;margin-bottom:20px">
+                    <select id="convType" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem">
+                        <option value="distance">Distância</option>
+                        <option value="weight">Peso</option>
+                        <option value="volume">Volume</option>
+                        <option value="temperature">Temperatura</option>
+                    </select>
+                </div>
+
+                <div style="width:100%;margin-bottom:15px">
+                    <input id="convInput" type="number" placeholder="Valor" style="width:100%;padding:15px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1.2rem">
+                </div>
+
+                <div style="width:100%;display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:20px">
+                    <select id="convFrom" style="padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem"></select>
+                    <span style="font-size:1.5rem">→</span>
+                    <select id="convTo" style="padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem"></select>
+                </div>
+
+                <div style="width:100%;padding:20px;background:rgba(0,122,255,0.1);border-radius:15px;text-align:center;margin-bottom:15px">
+                    <div style="font-size:0.9rem;color:var(--text);opacity:0.7;margin-bottom:5px">Resultado</div>
+                    <div id="convResult" style="font-size:2rem;font-weight:600;color:var(--accent)">0</div>
+                </div>
+
+                <button onclick="insertConversion()" style="width:100%;padding:15px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-size:1.1rem;font-weight:600">Inserir na Nota</button>
+            </div>
+        </div>
+    </div>
 
 <script>
-const $=id=>document.getElementById(id);
-let notes=JSON.parse(localStorage.getItem("notes")||"[]");
+    // Referências
+    const titleInput = document.getElementById('titleInput');
+    const noteBody = document.getElementById('noteBody');
+    const display = document.getElementById('calcResult');
+    const historyDropdown = document.getElementById('historyDropdown');
+    const historyList = document.getElementById('historyList');
+    
+    let savedNotes = JSON.parse(localStorage.getItem('appNotes') || '[]');
+    let calcHistory = [];
 
-function openModal(id){$(id).classList.add("active")}
-function closeModal(id){$(id).classList.remove("active")}
+    // --- CÁLCULO AUTOMÁTICO NA NOTA ---
+    // Deteta quando o utilizador escreve '='
+    noteBody.addEventListener('input', (e) => {
+        if (e.data === '=' || e.target.value.endsWith('=')) {
+            const val = e.target.value;
+            // Regex para capturar conta antes do = (ex: 50*2=)
+            // Aceita números, ., +, -, *, /, (, )
+            const match = val.match(/(?:^|[\n\s])([0-9.,+\-*/()]+)=$/);
+            
+            if (match) {
+                const expression = match[1].replace(/,/g, '.'); // Troca vírgula por ponto para JS
+                try {
+                    // Avalia a conta
+                    let result = eval(expression);
+                    // Arredonda se necessário
+                    if(!Number.isInteger(result)) result = parseFloat(result.toFixed(2));
+                    
+                    // Substitui "Expressão=" por "Expressão=Resultado"
+                    // ou apenas adiciona o resultado. Aqui adiciona o resultado.
+                    noteBody.value = val + result;
+                } catch (err) {
+                    // Se a conta for inválida, não faz nada
+                }
+            }
+        }
+    });
 
-btnTheme.onclick=()=>document.body.dataset.theme=
-document.body.dataset.theme==="light"?"dark":"light";
+    // --- UI GERAL ---
+    document.getElementById('btnTheme').onclick = () => {
+        document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light';
+    };
+    document.getElementById('btnClear').onclick = () => {
+        if(confirm("Limpar editor?")) { titleInput.value = ''; noteBody.value = ''; }
+    };
 
-btnOpenCalc.onclick=()=>openModal("modalCalc");
-btnList.onclick=()=>openModal("modalList");
+    // --- LÓGICA CALCULADORA ---
+    function ins(v) {
+        if(display.value === '0' && !isNaN(v)) display.value = '';
+        if(display.value === 'Erro') display.value = '';
+        display.value += v;
+    }
+    function cls() { display.value = '0'; }
+    function del() { display.value = display.value.length > 1 ? display.value.slice(0, -1) : '0'; }
 
-btnSave.onclick=()=>{
-    if(!noteBody.value.trim())return alert("Nota vazia");
-    notes.unshift({t:titleInput.value||"Sem título",b:noteBody.value});
-    localStorage.setItem("notes",JSON.stringify(notes));
-    alert("Guardado");
-};
+    function calculate() {
+        try {
+            let expr = display.value.replace(/×/g, '*').replace(/÷/g, '/');
+            let result;
+            
+            // Lógica de Percentagem (Soma e Subtração Financeira)
+            const percentPattern = /([0-9.]+)[\+\-]([0-9.]+)%/;
+            if (expr.includes('%')) {
+                if (percentPattern.test(expr)) {
+                    let op = expr.includes('+') ? '+' : '-';
+                    let [base, perc] = expr.split(op);
+                    let val = parseFloat(base) * (parseFloat(perc)/100);
+                    result = op === '+' ? parseFloat(base) + val : parseFloat(base) - val;
+                } else {
+                    result = eval(expr.replace(/([0-9.]+)%/g, '($1/100)'));
+                }
+            } else {
+                result = eval(expr);
+            }
+            
+            if (!Number.isInteger(result)) result = parseFloat(result.toFixed(4));
+            addToHistory(display.value, result);
+            display.value = result;
+        } catch { display.value = 'Erro'; }
+    }
 
-function renderNotes(){
-    notesContainer.innerHTML=notes.map(n=>`
-        <div class="note-card">
-            <div>${n.t}</div>
-        </div>`).join("");
-}
-btnList.onclick=()=>{renderNotes();openModal("modalList")};
+    function sci(func) {
+        try {
+            let val = eval(display.value);
+            let res = func==='sqrt'?Math.sqrt(val):func==='pow'?Math.pow(val,2):Math[func](val);
+            if (!Number.isInteger(res)) res = parseFloat(res.toFixed(6));
+            addToHistory(`${func}(${val})`, res);
+            display.value = res;
+        } catch { display.value = 'Erro'; }
+    }
 
-let display=calcResult;
-window.ins=v=>display.value=display.value==="0"?v:display.value+v;
-window.cls=()=>display.value="0";
-window.del=()=>display.value=display.value.length>1?display.value.slice(0,-1):"0";
-window.calculate=()=>{
-    try{
-        let r=eval(display.value.replace(/×/g,"*").replace(/÷/g,"/"));
-        display.value=+r.toFixed(6)
-    }catch{display.value="Erro"}
-};
+    // --- HISTÓRICO ---
+    function addToHistory(op, res) {
+        calcHistory.unshift(`${op} = ${res}`);
+        renderHistory();
+    }
+    function renderHistory() {
+        historyList.innerHTML = calcHistory.map(h => `<div class="hist-entry">${h}</div>`).join('');
+    }
+    
+    // Botão Limpar Histórico
+    document.getElementById('btnClearHist').onclick = (e) => {
+        e.stopPropagation(); // Não fechar o dropdown
+        calcHistory = [];
+        renderHistory();
+    };
 
-document.querySelectorAll(".overlay").forEach(o=>{
-    o.onclick=e=>{if(e.target===o)closeModal(o.id)}
-});
+    document.getElementById('btnShowHist').onclick = (e) => {
+        e.stopPropagation();
+        historyDropdown.classList.toggle('open');
+    };
+    document.getElementById('btnToggleSci').onclick = (e) => {
+        e.stopPropagation();
+        document.getElementById('sciRow').classList.toggle('show');
+    };
+    document.getElementById('btnPaste').onclick = (e) => {
+        e.stopPropagation();
+        if(display.value !== 'Erro') noteBody.value += (noteBody.value ? '\n' : '') + display.value;
+    };
+
+    // --- NOTAS (STORAGE) ---
+    function renderNotes() {
+        const c = document.getElementById('notesContainer');
+        c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888">Vazio</p>';
+        savedNotes.forEach(n => {
+            const div = document.createElement('div');
+            div.className = 'note-card';
+            div.innerHTML = `
+                <div class="note-card-text" onclick="loadNote(${n.id})"><h4>${n.title}</h4><p>${n.body}</p></div>
+                <button class="btn-trash" onclick="deleteNote(${n.id})">🗑</button>
+            `;
+            c.appendChild(div);
+        });
+    }
+    document.getElementById('btnSave').onclick = () => {
+        if(!titleInput.value.trim() && !noteBody.value.trim()) return;
+        savedNotes.unshift({id: Date.now(), title: titleInput.value||'Sem Título', body: noteBody.value});
+        localStorage.setItem('appNotes', JSON.stringify(savedNotes));
+        alert("Guardado!"); titleInput.value = ''; noteBody.value = '';
+    };
+    window.loadNote = (id) => {
+        const n = savedNotes.find(x => x.id === id);
+        if(n) { titleInput.value = n.title; noteBody.value = n.body; closeModal('modalList'); }
+    };
+    window.deleteNote = (id) => {
+        if(confirm("Apagar?")) {
+            savedNotes = savedNotes.filter(n => n.id !== id);
+            localStorage.setItem('appNotes', JSON.stringify(savedNotes));
+            renderNotes();
+        }
+    };
+
+    // --- MODAL & SWIPE COM CORREÇÃO DE SCROLL ---
+    function openModal(id) { 
+        document.getElementById(id).classList.add('active'); 
+        if(id==='modalList') renderNotes(); 
+        if(id==='modalConverter') initConverter(); 
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    
+    document.getElementById('btnOpenCalc').onclick = () => openModal('modalCalc');
+    document.getElementById('btnList').onclick = () => openModal('modalList');
+    document.getElementById('btnConverter').onclick = () => openModal('modalConverter');
+
+    document.querySelectorAll('.overlay').forEach(overlay => {
+        overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(overlay.id); });
+        
+        const sheet = overlay.querySelector('.sheet');
+        let startY = 0;
+
+        sheet.addEventListener('touchstart', (e) => {
+            // CORREÇÃO: Se tocar no histórico ou lista de notas, não iniciar swipe para fechar
+            // a não ser que o scroll esteja no topo absoluto
+            const isScrollable = e.target.closest('.history-dropdown, .list-container');
+            if (isScrollable && isScrollable.scrollTop > 0) return;
+
+            // Se for dentro do histórico, verifica se está no topo para permitir swipe (opcional)
+            // ou simplesmente bloqueia o swipe da sheet se estiver a interagir com o historico
+            if (e.target.closest('.history-dropdown')) return;
+
+            if(sheet.scrollTop === 0) startY = e.touches[0].clientY;
+        }, {passive: true});
+
+        sheet.addEventListener('touchmove', (e) => {
+            if(startY === 0) return;
+            const diff = e.touches[0].clientY - startY;
+            if(diff > 0) { 
+                if(e.cancelable) e.preventDefault(); 
+                sheet.style.transform = `translateY(${diff}px)`; 
+                sheet.style.transition = 'none';
+            }
+        }, {passive: false});
+
+        sheet.addEventListener('touchend', (e) => {
+            if(startY === 0) return;
+            sheet.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+            if((e.changedTouches[0].clientY - startY) > 120) closeModal(overlay.id);
+            else sheet.style.transform = '';
+            startY = 0;
+        });
+    });
+
+    // --- CONVERSOR ---
+    const conversions = {
+        distance: {
+            units: ['metros', 'quilómetros', 'milhas', 'pés', 'polegadas', 'centímetros'],
+            toBase: { metros: 1, quilómetros: 1000, milhas: 1609.34, pés: 0.3048, polegadas: 0.0254, centímetros: 0.01 }
+        },
+        weight: {
+            units: ['gramas', 'quilogramas', 'libras', 'onças', 'toneladas'],
+            toBase: { gramas: 1, quilogramas: 1000, libras: 453.592, onças: 28.3495, toneladas: 1000000 }
+        },
+        volume: {
+            units: ['litros', 'mililitros', 'galões', 'copos', 'metros cúbicos'],
+            toBase: { litros: 1, mililitros: 0.001, galões: 3.78541, copos: 0.24, 'metros cúbicos': 1000 }
+        },
+        temperature: {
+            units: ['Celsius', 'Fahrenheit', 'Kelvin'],
+            convert: (val, from, to) => {
+                let celsius = from === 'Celsius' ? val : from === 'Fahrenheit' ? (val - 32) * 5/9 : val - 273.15;
+                return to === 'Celsius' ? celsius : to === 'Fahrenheit' ? celsius * 9/5 + 32 : celsius + 273.15;
+            }
+        }
+    };
+
+    function initConverter() {
+        updateUnits();
+        document.getElementById('convType').onchange = updateUnits;
+        document.getElementById('convInput').oninput = convert;
+        document.getElementById('convFrom').onchange = convert;
+        document.getElementById('convTo').onchange = convert;
+    }
+
+    function updateUnits() {
+        const type = document.getElementById('convType').value;
+        const units = conversions[type].units;
+        const html = units.map(u => `<option value="${u}">${u}</option>`).join('');
+        document.getElementById('convFrom').innerHTML = html;
+        document.getElementById('convTo').innerHTML = html;
+        document.getElementById('convTo').selectedIndex = 1;
+        convert();
+    }
+
+    function convert() {
+        const type = document.getElementById('convType').value;
+        const val = parseFloat(document.getElementById('convInput').value) || 0;
+        const from = document.getElementById('convFrom').value;
+        const to = document.getElementById('convTo').value;
+        
+        let result;
+        if (type === 'temperature') {
+            result = conversions.temperature.convert(val, from, to);
+        } else {
+            const base = val * conversions[type].toBase[from];
+            result = base / conversions[type].toBase[to];
+        }
+        
+        document.getElementById('convResult').textContent = result.toFixed(4);
+    }
+
+    function insertConversion() {
+        const val = document.getElementById('convInput').value;
+        const from = document.getElementById('convFrom').value;
+        const to = document.getElementById('convTo').value;
+        const result = document.getElementById('convResult').textContent;
+        const text = `${val} ${from} = ${result} ${to}`;
+        noteBody.value += (noteBody.value ? '\n' : '') + text;
+    }
+
 </script>
 </body>
 </html>
