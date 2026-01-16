@@ -1,3 +1,5 @@
+Teste 1 ✔️
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -51,32 +53,25 @@
     .calc-preview-bubble.active { opacity: 1; transform: translateX(-50%) translateY(0); }
     .calc-preview-bubble span { color: var(--text); opacity: 0.5; font-weight: 400; font-size: 0.8rem; }
 
-    /* --- DOCK UNIFORME --- */
+    /* --- DOCK --- */
     .dock-bar {
-        position: fixed; bottom: calc(25px + env(safe-area-inset-bottom)); left: 15px; right: 15px;
+        position: fixed; bottom: calc(30px + env(safe-area-inset-bottom)); left: 20px; right: 20px;
         background: var(--sheet-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-        padding: 12px; border-radius: 50px;
+        padding: 10px 15px; border-radius: 45px;
         display: flex; justify-content: space-between; align-items: center;
         box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid rgba(128,128,128,0.2); z-index: 100;
-        gap: 5px; /* Espaçamento entre botões */
     }
-    
-    /* Estilo base para TODOS os botões da dock serem iguais */
     .dock-btn {
-        width: 50px; height: 50px; /* Tamanho fixo igual para todos */
-        border-radius: 50%; border: none;
-        background: transparent; color: var(--accent); 
-        font-size: 1.4rem;
+        width: 45px; height: 45px; border-radius: 50%; border: none;
+        background: transparent; color: var(--accent); font-size: 1.4rem;
         display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        transition: transform 0.1s, background 0.2s;
-        padding: 0; margin: 0;
+        transition: transform 0.1s;
     }
     .dock-btn:active { transform: scale(0.9); background: rgba(128,128,128,0.15); }
+    .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); width: 55px; height: 55px; font-size: 1.8rem; }
     
-    /* Cores específicas */
-    .dock-btn.main-action { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
-    .dock-btn.danger-action { color: var(--red); }
-    .dock-btn.new-note { color: var(--text); font-weight: 600; font-size: 1.6rem; }
+    /* Botão Novo Destacado */
+    .dock-btn.new-note { color: var(--text); background: var(--btn-grey); font-weight: 600; font-size: 1.6rem; }
 
     /* --- SHEETS --- */
     .overlay {
@@ -128,18 +123,37 @@
     .key-btn.wide { grid-column: span 2; width: 100%; max-width: none; aspect-ratio: auto; height: 75px; border-radius: 40px; justify-content: flex-start; padding-left: 30px; }
 
     /* --- NOTAS E SELEÇÃO --- */
-    .list-header-actions { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; }
+    .list-header-actions {
+        display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px;
+    }
     .btn-text-action { background: none; border: none; font-size: 1rem; color: var(--accent); font-weight: 600; }
     .btn-text-action.danger { color: var(--red); }
+
     .list-container { padding: 0 20px 20px 20px; overflow-y: auto; flex: 1; width: 100%; }
-    .note-card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); transition: transform 0.2s; }
+    
+    .note-card {
+        background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 10px;
+        display: flex; align-items: center; gap: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
     .note-card-text { flex: 1; overflow: hidden; cursor: pointer; }
     .btn-trash { background: rgba(255, 59, 48, 0.1); color: var(--red); border: none; width: 35px; height: 35px; border-radius: 50%; flex-shrink: 0; }
-    .note-checkbox { display: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); appearance: none; -webkit-appearance: none; flex-shrink: 0; position: relative; }
+
+    /* Checkbox de seleção (escondido por defeito) */
+    .note-checkbox {
+        display: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border);
+        appearance: none; -webkit-appearance: none; flex-shrink: 0;
+        position: relative;
+    }
     .note-checkbox:checked { background: var(--accent); border-color: var(--accent); }
-    .note-checkbox:checked::after { content: '✓'; position: absolute; color: #fff; font-size: 14px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .note-checkbox:checked::after {
+        content: '✓'; position: absolute; color: #fff; font-size: 14px; 
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+    }
+    /* Modo Seleção Ativo */
     .select-mode .note-checkbox { display: block; }
-    .select-mode .btn-trash { display: none; }
+    .select-mode .btn-trash { display: none; } /* Esconde lixo individual no modo seleção */
 
 </style>
 </head>
@@ -157,9 +171,7 @@
 
     <div class="dock-bar">
         <button class="dock-btn" id="btnTheme">◑</button>
-        <button class="dock-btn danger-action" id="btnClear">🗑</button>
-        <button class="dock-btn new-note" id="btnNew">＋</button>
-        <button class="dock-btn main-action" id="btnOpenCalc">🧮</button>
+        <button class="dock-btn new-note" id="btnNew">＋</button> <button class="dock-btn main-action" id="btnOpenCalc">🧮</button>
         <button class="dock-btn" id="btnConverter">⇄</button>
         <button class="dock-btn" id="btnSave">💾</button>
         <button class="dock-btn" id="btnList">☰</button>
@@ -225,42 +237,26 @@
     let savedNotes = JSON.parse(localStorage.getItem('appNotes') || '[]');
     let calcHistory = [];
     let pendingCalculation = null;
-    let isSelectMode = false;
+    let isSelectMode = false; // Estado para seleção múltipla
 
-    // --- CARREGAR TEMA GUARDADO ---
-    const savedTheme = localStorage.getItem('appTheme') || 'light';
-    document.body.dataset.theme = savedTheme;
-
-    // --- TEMA E PERSISTÊNCIA ---
-    document.getElementById('btnTheme').onclick = () => { 
-        const newTheme = document.body.dataset.theme === 'light' ? 'dark' : 'light';
-        document.body.dataset.theme = newTheme;
-        localStorage.setItem('appTheme', newTheme);
-    };
-
-    // --- LIMPAR EDITOR (BOTÃO DO LIXO NA DOCK) ---
-    document.getElementById('btnClear').onclick = () => {
-        if(titleInput.value.trim() || noteBody.value.trim()) {
-            if(confirm("Limpar todo o conteúdo do editor?")) { clearEditor(); }
-        } else {
-            // Se já estiver vazio, foca apenas
-            titleInput.focus();
-        }
-    };
-
-    // --- NOVA NOTA ---
+    // --- NOVA NOTA (Lógica Pedida) ---
     document.getElementById('btnNew').onclick = () => {
         const hasContent = titleInput.value.trim() || noteBody.value.trim();
+        
         if (hasContent) {
+            // Pergunta 1: Guardar?
             if (confirm("A nota atual tem conteúdo.\nDeseja GUARDAR antes de criar uma nova?")) {
-                saveNote(); 
-                clearEditor(); 
+                saveNote(); // Guarda
+                clearEditor(); // Limpa
             } else {
+                // Pergunta 2: Apagar?
                 if (confirm("Deseja APAGAR o conteúdo atual e começar uma nota limpa?")) {
                     clearEditor();
                 }
+                // Se cancelar aqui, não faz nada (mantém o texto)
             }
         } else {
+            // Se já estava vazio, só garante o foco
             clearEditor();
         }
     };
@@ -305,6 +301,9 @@
     function showPreview(val) { previewValue.textContent = val; calcPreview.classList.add('active'); }
     function hidePreview() { calcPreview.classList.remove('active'); pendingCalculation = null; }
 
+    // --- UI GERAL ---
+    document.getElementById('btnTheme').onclick = () => { document.body.dataset.theme = document.body.dataset.theme === 'light' ? 'dark' : 'light'; };
+    
     // --- CALCULADORA ---
     function ins(v) { if(display.value==='0'&&!isNaN(v))display.value=''; if(display.value==='Erro')display.value=''; display.value+=v; }
     function cls() { display.value = '0'; }
@@ -320,56 +319,92 @@
     document.getElementById('btnPaste').onclick = (e) => { e.stopPropagation(); if(display.value!=='Erro') noteBody.value+=(noteBody.value?'\n':'')+display.value; };
 
     // --- NOTAS & SELEÇÃO MÚLTIPLA ---
+    
+    // Renderiza a lista
     function renderNotes() {
         const c = document.getElementById('notesContainer');
         const containerClass = isSelectMode ? 'list-container select-mode' : 'list-container';
-        c.parentElement.className = containerClass;
+        c.parentElement.className = containerClass; // Aplica classe ao pai para CSS
         
         c.innerHTML = savedNotes.length ? '' : '<p style="text-align:center;color:#888">Vazio</p>';
         
         savedNotes.forEach(n => {
             const div = document.createElement('div');
             div.className = 'note-card';
+            
+            // Checkbox (Seleção)
             const checkbox = `<input type="checkbox" class="note-checkbox" value="${n.id}">`;
+            
+            // Texto (Click abre nota SE não estiver em modo seleção)
             const textContent = `<div class="note-card-text" onclick="${isSelectMode ? `toggleCheck(${n.id})` : `loadNote(${n.id})`}"><h4>${n.title}</h4><p>${n.body.substring(0, 40)}${n.body.length>40?'...':''}</p></div>`;
+            
+            // Botão Lixo (Individual)
             const trashBtn = `<button class="btn-trash" onclick="deleteNote(${n.id})">🗑</button>`;
+            
             div.innerHTML = checkbox + textContent + trashBtn;
             c.appendChild(div);
         });
 
+        // Atualiza botões do header
         document.getElementById('btnToggleSelect').textContent = isSelectMode ? 'Cancelar' : 'Selecionar';
         document.getElementById('btnDeleteSelected').style.display = isSelectMode ? 'block' : 'none';
     }
 
-    document.getElementById('btnToggleSelect').onclick = () => { isSelectMode = !isSelectMode; renderNotes(); };
-    window.toggleCheck = (id) => { const check = document.querySelector(`input[value="${id}"]`); if(check) check.checked = !check.checked; };
+    // Toggle Seleção
+    document.getElementById('btnToggleSelect').onclick = () => {
+        isSelectMode = !isSelectMode;
+        renderNotes();
+    };
+
+    // Helper para clicar no card e marcar a checkbox
+    window.toggleCheck = (id) => {
+        const check = document.querySelector(`input[value="${id}"]`);
+        if(check) check.checked = !check.checked;
+    };
+
+    // Apagar Selecionadas
     document.getElementById('btnDeleteSelected').onclick = () => {
         const checked = document.querySelectorAll('.note-checkbox:checked');
         if (checked.length === 0) return alert("Nenhuma nota selecionada.");
+        
         if (confirm(`Apagar ${checked.length} notas?`)) {
             const idsToDelete = Array.from(checked).map(cb => parseInt(cb.value));
             savedNotes = savedNotes.filter(n => !idsToDelete.includes(n.id));
             localStorage.setItem('appNotes', JSON.stringify(savedNotes));
-            isSelectMode = false; 
+            isSelectMode = false; // Sai do modo seleção
             renderNotes();
         }
     };
 
     document.getElementById('btnSave').onclick = () => { saveNote(); alert("Guardado!"); };
-    window.loadNote = (id) => { const n = savedNotes.find(x => x.id === id); if(n) { titleInput.value = n.title; noteBody.value = n.body; closeModal('modalList'); } };
-    window.deleteNote = (id) => { if(confirm("Apagar esta nota?")) { savedNotes = savedNotes.filter(n => n.id !== id); localStorage.setItem('appNotes', JSON.stringify(savedNotes)); renderNotes(); } };
+    
+    window.loadNote = (id) => {
+        const n = savedNotes.find(x => x.id === id);
+        if(n) { titleInput.value = n.title; noteBody.value = n.body; closeModal('modalList'); }
+    };
+    
+    window.deleteNote = (id) => {
+        if(confirm("Apagar esta nota?")) {
+            savedNotes = savedNotes.filter(n => n.id !== id);
+            localStorage.setItem('appNotes', JSON.stringify(savedNotes));
+            renderNotes();
+        }
+    };
 
     // --- MODAL SYSTEM ---
     function openModal(id) { 
-        const overlay = document.getElementById(id); const sheet = overlay.querySelector('.sheet');
+        const overlay = document.getElementById(id);
+        const sheet = overlay.querySelector('.sheet');
         sheet.style.cssText = ''; void sheet.offsetWidth; 
         overlay.classList.add('active'); 
-        if(id==='modalList') { isSelectMode=false; renderNotes(); }
+        if(id==='modalList') { isSelectMode=false; renderNotes(); } // Reset seleção ao abrir
         if(id==='modalConverter') initConverter(); 
     }
     function closeModal(id) { 
-        const overlay = document.getElementById(id); const sheet = overlay.querySelector('.sheet');
-        overlay.classList.remove('active'); setTimeout(() => { sheet.style.cssText = ''; }, 350);
+        const overlay = document.getElementById(id);
+        const sheet = overlay.querySelector('.sheet');
+        overlay.classList.remove('active');
+        setTimeout(() => { sheet.style.cssText = ''; }, 350);
     }
     document.getElementById('btnOpenCalc').onclick = () => openModal('modalCalc');
     document.getElementById('btnList').onclick = () => openModal('modalList');
@@ -377,7 +412,8 @@
     
     document.querySelectorAll('.overlay').forEach(overlay => {
         overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(overlay.id); });
-        const sheet = overlay.querySelector('.sheet'); let startY = 0; let currentY = 0;
+        const sheet = overlay.querySelector('.sheet');
+        let startY = 0; let currentY = 0;
         sheet.addEventListener('touchstart', (e) => {
             const isScrollable = e.target.closest('.history-dropdown, .list-container, .calc-container');
             if (isScrollable && isScrollable.scrollTop > 0) return;
@@ -388,8 +424,10 @@
             if((currentY - startY) > 0) { if(e.cancelable) e.preventDefault(); sheet.style.transform = `translateY(${currentY - startY}px)`; }
         }, {passive: false});
         sheet.addEventListener('touchend', (e) => {
-            if(startY === 0) return; sheet.style.transition = ''; 
-            if((currentY - startY) > 120) { sheet.style.transform = ''; overlay.classList.remove('active'); } else { sheet.style.transform = ''; }
+            if(startY === 0) return;
+            sheet.style.transition = ''; 
+            if((currentY - startY) > 120) { sheet.style.transform = ''; overlay.classList.remove('active'); } 
+            else { sheet.style.transform = ''; }
             startY = 0; currentY = 0;
         });
     });
